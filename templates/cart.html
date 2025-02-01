@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Your Cart</h1>
+    {% if cart and cart|length > 0 %}
+        <table class="table mt-4">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Size</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.size }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.price * item.quantity }}</td>
+                    <td>
+                        <form method="POST" action="/cart">
+                            <input type="hidden" name="remove_product_id" value="{{ item.id }}">
+                            <input type="hidden" name="size" value="{{ item.size }}">
+                            <input type="number" name="quantity_to_remove" min="1" max="{{ item.quantity }}" value="1" class="form-control d-inline w-25">
+                            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="text-end">
+            <a href="/checkout" class="btn btn-primary">Proceed to Checkout</a>
+        </div>
+    {% else %}
+        <p class="text-center">Your cart is empty.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .confirmation {
+        text-align: center;
+        margin: 50px auto;
+        padding: 20px;
+        max-width: 600px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
+<div class="confirmation">
+    <h1>Thank you for your purchase!</h1>
+    <p>Your order has been confirmed. You will receive an email shortly.</p>
+    <a href="/">Back to Homepage</a>
+</div>
+{% endblock %}

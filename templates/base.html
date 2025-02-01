@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RELAPSE</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        .content {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .footer {
+            background-color: black;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+        .main {
+            flex: 1;
+        }
+        .navbar {
+            justify-content: center;
+        }
+        .navbar-nav {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .nav-item {
+            padding: 0 15px;
+        }
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a href="/" class="navbar-brand">RELAPSE</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a href="/new" class="nav-link">New</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="clothingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Clothing</a>
+                            <ul class="dropdown-menu" aria-labelledby="clothingDropdown">
+                                <li><a href="/clothing/shirts" class="dropdown-item">Shirts</a></li>
+                                <li><a href="/clothing/pants" class="dropdown-item">Pants</a></li>
+                                <li><a href="/clothing/shorts" class="dropdown-item">Shorts</a></li>
+                                <li><a href="/clothing/hoodies" class="dropdown-item">Hoodies</a></li>
+                                <li><a href="/clothing/jackets" class="dropdown-item">Jackets</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a href="/sales" class="nav-link">Sales</a></li>
+                        <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
+                        <li class="nav-item"><a href="/cart" class="nav-link"><img src="/static/cart_icon.jpg" alt="Cart" style="height: 30px; width: 30px;"></a></li>
+                        <li class="nav-item"><a href="/login" class="nav-link"><img src="/static/login_icon.jpg" alt="Login" style="height: 30px; width: 30px;"></a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main">
+            {% block content %}
+            {% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            RELAPSE © 2025
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
