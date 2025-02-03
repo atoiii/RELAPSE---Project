@@ -161,22 +161,17 @@ def cart():
                     flash(f"{quantity} {size.upper()} {product['name']} added to cart!", "success")
 
             elif "remove_product_id" in request.form:
-                # Remove specific quantity of a product from the cart
+                # Remove product from the cart entirely
                 product_id = int(request.form["remove_product_id"])
                 size = request.form["size"]
-                quantity_to_remove = int(request.form["quantity_to_remove"])
 
-                for item in session["cart"]:
-                    if item["id"] == product_id and item["size"] == size:
-                        if item["quantity"] > quantity_to_remove:
-                            item["quantity"] -= quantity_to_remove
-                        else:
-                            session["cart"].remove(item)
-                        break
+                # Find and remove the item from the cart
+                session["cart"] = [item for item in session["cart"] if
+                                   not (item["id"] == product_id and item["size"] == size)]
 
                 # Save the updated cart to the database
                 db[email]["cart"] = session["cart"]
-                flash("Item(s) removed from cart.", "success")
+                flash("Item removed from cart.", "success")
 
         session.modified = True
 

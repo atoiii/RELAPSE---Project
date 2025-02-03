@@ -3,28 +3,45 @@
 <div class="container mt-5">
     <h1 class="text-center">Your Cart</h1>
     {% if cart and cart|length > 0 %}
-        <table class="table mt-4">
-            <thead>
+        <table class="table table-hover mt-4">
+            <thead class="table-light">
                 <tr>
                     <th>Product</th>
                     <th>Size</th>
                     <th>Quantity</th>
                     <th>Price</th>
+                    <th>Total</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in cart %}
-                <tr>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.size }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>${{ item.price * item.quantity }}</td>
+                <tr data-item-id="{{ item.id }}" data-price="{{ item.price }}">
+                    <td>
+                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="img-thumbnail" width="50">
+                        {{ item.name }}
+                    </td>
+                    <td>
+                        <select name="size" class="form-select form-select-sm">
+                            <option value="S" {% if item.size == "S" %}selected="selected"{% endif %}>S</option>
+                            <option value="M" {% if item.size == "M" %}selected="selected"{% endif %}>M</option>
+                            <option value="L" {% if item.size == "L" %}selected="selected"{% endif %}>L</option>
+                            <option value="XL" {% if item.size == "XL" %}selected="selected"{% endif %}>XL</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-outline-secondary btn-sm quantity-decrease">-</button>
+                            <input type="number" name="quantity" value="{{ item.quantity }}" class="form-control text-center mx-1 quantity-input" style="width: 50px;" min="1">
+                            <button class="btn btn-outline-secondary btn-sm quantity-increase">+</button>
+                        </div>
+                    </td>
+                    <td>${{ "%.2f"|format(item.price) }}</td>
+                    <td class="total-price">${{ "%.2f"|format(item.price * item.quantity) }}</td>
                     <td>
                         <form method="POST" action="/cart">
                             <input type="hidden" name="remove_product_id" value="{{ item.id }}">
                             <input type="hidden" name="size" value="{{ item.size }}">
-                            <input type="number" name="quantity_to_remove" min="1" max="{{ item.quantity }}" value="1" class="form-control d-inline w-25">
                             <button type="submit" class="btn btn-danger btn-sm">Remove</button>
                         </form>
                     </td>
@@ -40,4 +57,53 @@
         <p class="text-center">Your cart is empty.</p>
     {% endif %}
 </div>
+
+<style>
+/* Remove number input arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".quantity-decrease").forEach(button => {
+        button.addEventListener("click", function() {
+            let input = this.nextElementSibling;
+            let newValue = Math.max(1, parseInt(input.value) - 1);
+            input.value = newValue;
+            updateTotal(this.closest("tr"), newValue);
+        });
+    });
+
+    document.querySelectorAll(".quantity-increase").forEach(button => {
+        button.addEventListener("click", function() {
+            let input = this.previousElementSibling;
+            let newValue = parseInt(input.value) + 1;
+            input.value = newValue;
+            updateTotal(this.closest("tr"), newValue);
+        });
+    });
+
+    document.querySelectorAll(".quantity-input").forEach(input => {
+        input.addEventListener("input", function() {
+            let newValue = Math.max(1, parseInt(this.value) || 1);
+            this.value = newValue;
+            updateTotal(this.closest("tr"), newValue);
+        });
+    });
+
+    function updateTotal(row, quantity) {
+        let price = parseFloat(row.getAttribute("data-price"));
+        let totalPriceCell = row.querySelector(".total-price");
+        totalPriceCell.textContent = `$${(price * quantity).toFixed(2)}`;
+    }
+});
+</script>
 {% endblock %}
