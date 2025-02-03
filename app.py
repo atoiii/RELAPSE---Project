@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
-from datetime import timedelta
-import shelve
 import re
+import shelve
 import smtplib
-from email.mime.text import MIMEText
+from datetime import timedelta
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -17,6 +18,17 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # For "Remember M
 PRODUCTS = [
     {"id": 1, "name": "RELAPSE Winx Club Tee", "price": 50, "category": "shirts", "image": "winx_club_shirt.jpg"},
     {"id": 2, "name": "Demon Nerves Hoodie", "price": 60, "category": "hoodies", "image": "demon_nerves_hoodie.jpg"},
+    {"id": 3, "name": "GAMBLE Tee", "price": 50, "category": "shirts", "image": "gambleShirt.jpg"},
+    {"id": 4, "name": "Hoodie Zip-Up", "price": 120, "category": "hoodies", "image": "hoodiezipup.jpg"},
+    {"id": 5, "name": "Jackety Jacket", "price": 110, "category": "hoodies", "image": "jacketyjacket.jpg"},
+    {"id": 6, "name": "RELAPSE Jeans", "price": 80, "category": "pants", "image": "jeansRelapse.jpg"},
+    {"id": 7, "name": "RELAPSE Jorts", "price": 70, "category": "shorts", "image": "jortsRelapse.jpg"},
+    {"id": 8, "name": "LeCalm Jacket", "price": 120, "category": "hoodies", "image": "lecalmJacket.jpg"},
+    {"id": 9, "name": "RELAPSE Stained Shirt", "price": 50, "category": "shirts", "image": "relapseStainShirt.jpg"},
+    {"id": 10, "name": "Threaded Jeans", "price": 100, "category": "pants", "image": "threadsJeans.jpg"},
+    {"id": 1, "name": "RELAPSE Winx Club Tee", "price": 50, "category": "shirts", "image": "winx_club_shirt.jpg"},
+    {"id": 3, "name": "GAMBLE Tee", "price": 50, "category": "shirts", "image": "gambleShirt.jpg"},
+    {"id": 9, "name": "RELAPSE Stained Shirt", "price": 50, "category": "shirts", "image": "relapseStainShirt.jpg"},
 ]
 
 
@@ -220,6 +232,7 @@ def add_to_cart(product_id):
 
     return render_template("add_to_cart.html", product=product)
 
+
 @app.route('/checkout', methods=["GET", "POST"])
 def checkout():
     if "cart" not in session or len(session["cart"]) == 0:
@@ -232,6 +245,7 @@ def checkout():
         flash("Payment successful! Your order has been placed.", "success")
         return redirect(url_for("order_confirmation"))
     return render_template("checkout.html")
+
 
 @app.route('/order_confirmation')
 def order_confirmation():
@@ -293,7 +307,6 @@ def logout():
     resp.delete_cookie(app.config['SESSION_COOKIE_NAME'])  # Clear the session cookie
     flash("Logged out successfully.", "success")
     return resp
-
 
 
 def send_password_reset_email(to_email):
@@ -518,115 +531,5 @@ def modify_product(product_id):
     return render_template("modify_product.html", product=product)
 
 
-
-app.secret_key = 'secret_key'
-DB_FILE = "deliveries.db"
-
-
-def get_deliveries():
-    with shelve.open(DB_FILE) as db:
-        return db.get("deliveries", [])
-
-
-def save_deliveries(deliveries):
-    with shelve.open(DB_FILE, writeback=True) as db:
-        db["deliveries"] = deliveries
-
-
-def get_selected_delivery():
-    with shelve.open(DB_FILE) as db:
-        return db.get("selected_delivery", {})
-
-
-def save_selected_delivery(selected_delivery):
-    with shelve.open(DB_FILE, writeback=True) as db:
-        db["selected_delivery"] = selected_delivery
-
-
-@app.route('/')
-def index():
-    deliveries = get_deliveries()
-    selected_delivery = get_selected_delivery()
-    return render_template('website.html', deliveries=deliveries, selected_delivery=selected_delivery)
-
-
-@app.route('/add_delivery', methods=['POST'])
-def add_delivery():
-    country = request.form.get('country')
-    address = request.form.get('address')
-    city = request.form.get('city')
-    state = request.form.get('state')
-    postcode = request.form.get('postcode')
-
-    if country and address and city:
-        deliveries = get_deliveries()
-        deliveries.append({
-            'country': country,
-            'address': address,
-            'city': city,
-            'state': state,
-            'postcode': postcode
-        })
-        save_deliveries(deliveries)
-        flash('Delivery added successfully!', 'success')
-    else:
-        flash('All fields are required to add a delivery!', 'danger')
-
-    return redirect(url_for('index'))
-
-
-@app.route('/edit_delivery/<int:index>', methods=['GET', 'POST'])
-def edit_delivery(index):
-    deliveries = get_deliveries()
-
-    if request.method == 'POST':
-        if 0 <= index < len(deliveries):
-            deliveries[index] = {
-                'country': request.form.get('country'),
-                'address': request.form.get('address'),
-                'city': request.form.get('city'),
-                'state': request.form.get('state'),
-                'postcode': request.form.get('postcode')
-            }
-            save_deliveries(deliveries)
-            flash('Delivery updated successfully!', 'success')
-        return redirect(url_for('index'))
-
-    return render_template('edit_delivery.html', delivery=deliveries[index], index=index)
-
-
-@app.route('/delete_delivery/<int:index>', methods=['POST'])
-def delete_delivery(index):
-    deliveries = get_deliveries()
-    selected_delivery = get_selected_delivery()
-
-    if 0 <= index < len(deliveries):
-        if deliveries[index] == selected_delivery:
-            selected_delivery = {}
-            save_selected_delivery(selected_delivery)
-
-        deliveries.pop(index)
-        save_deliveries(deliveries)
-        flash('Delivery deleted successfully!', 'success')
-    else:
-        flash('Invalid delivery index for deletion!', 'danger')
-
-    return redirect(url_for('index'))
-
-
-@app.route('/select_delivery/<int:index>', methods=['POST'])
-def select_delivery(index):
-    deliveries = get_deliveries()
-
-    if 0 <= index < len(deliveries):
-        selected_delivery = deliveries[index]
-        save_selected_delivery(selected_delivery)
-        flash('Delivery selected successfully!', 'success')
-    else:
-        flash('Invalid delivery selection!', 'danger')
-
-    return redirect(url_for('index'))
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
