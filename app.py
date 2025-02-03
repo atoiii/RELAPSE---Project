@@ -158,7 +158,6 @@ def cart():
             email = user["email"]
 
             if "product_id" in request.form:
-                # Add product to the cart
                 product_id = int(request.form["product_id"])
                 size = request.form["size"]
                 quantity = int(request.form["quantity"])
@@ -197,7 +196,7 @@ def cart():
                 flash("Item removed from cart.", "success")
 
         session.modified = True
-
+        return redirect(url_for("delivery"))
     return render_template("cart.html", cart=session["cart"])
 
 
@@ -239,6 +238,19 @@ def add_to_cart(product_id):
     return render_template("add_to_cart.html", product=product)
 
 
+@app.route('/delivery', methods=["GET", "POST"])
+def delivery():
+    if "cart" not in session or len(session["cart"]) == 0:
+        flash("Your cart is empty.", "danger")
+        return redirect(url_for("checkout"))
+
+    if request.method == "POST":
+        # Redirect to checkout after delivery details
+        return redirect(url_for("checkout"))
+
+    return render_template("delivery.html")
+
+
 @app.route('/checkout', methods=["GET", "POST"])
 def checkout():
     if "cart" not in session or len(session["cart"]) == 0:
@@ -252,7 +264,6 @@ def checkout():
         return redirect(url_for("home"))
 
     return render_template("checkout.html")
-
 
 
 @app.route('/forgot_password', methods=["GET", "POST"])
@@ -532,6 +543,116 @@ def modify_product(product_id):
             return redirect(url_for("admin_dashboard"))
 
     return render_template("modify_product.html", product=product)
+
+
+if __name__ == "__main__":
+    app.secret_key = 'secret_key'
+DB_FILE = "deliveries.db"
+
+
+def get_deliveries():
+    with shelve.open(DB_FILE) as db:
+        return db.get("deliveries", [])
+
+
+def save_deliveries(deliveries):
+    with shelve.open(DB_FILE, writeback=True) as db:
+        db["deliveries"] = deliveries
+
+
+def get_selected_delivery():
+    with shelve.open(DB_FILE) as db:
+        return db.get("selected_delivery", {})
+
+
+def save_selected_delivery(selected_delivery):
+    with shelve.open(DB_FILE, writeback=True) as db:
+        db["selected_delivery"] = selected_delivery
+
+
+@app.route('/')
+def index():
+    deliveries = get_deliveries()
+    selected_delivery = get_selected_delivery()
+    return render_template('website.html', deliveries=deliveries, selected_delivery=selected_delivery)
+
+
+@app.route('/add_delivery', methods=['POST'])
+def add_delivery():
+    country = request.form.get('country')
+    address = request.form.get('address')
+    city = request.form.get('city')
+    state = request.form.get('state')
+    postcode = request.form.get('postcode')
+
+    if country and address and city:
+        deliveries = get_deliveries()
+        deliveries.append({
+            'country': country,
+            'address': address,
+            'city': city,
+            'state': state,
+            'postcode': postcode
+        })
+        save_deliveries(deliveries)
+        flash('Delivery added successfully!', 'success')
+    else:
+        flash('All fields are required to add a delivery!', 'danger')
+
+    return redirect(url_for('index'))
+
+
+@app.route('/edit_delivery/<int:index>', methods=['GET', 'POST'])
+def edit_delivery(index):
+    deliveries = get_deliveries()
+
+    if request.method == 'POST':
+        if 0 <= index < len(deliveries):
+            deliveries[index] = {
+                'country': request.form.get('country'),
+                'address': request.form.get('address'),
+                'city': request.form.get('city'),
+                'state': request.form.get('state'),
+                'postcode': request.form.get('postcode')
+            }
+            save_deliveries(deliveries)
+            flash('Delivery updated successfully!', 'success')
+        return redirect(url_for('index'))
+
+    return render_template('edit_delivery.html', delivery=deliveries[index], index=index)
+
+
+@app.route('/delete_delivery/<int:index>', methods=['POST'])
+def delete_delivery(index):
+    deliveries = get_deliveries()
+    selected_delivery = get_selected_delivery()
+
+    if 0 <= index < len(deliveries):
+        if deliveries[index] == selected_delivery:
+            selected_delivery = {}
+            save_selected_delivery(selected_delivery)
+
+        deliveries.pop(index)
+        save_deliveries(deliveries)
+        flash('Delivery deleted successfully!', 'success')
+    else:
+        flash('Invalid delivery index for deletion!', 'danger')
+
+    return redirect(url_for('index'))
+
+
+@app.route('/select_delivery/<int:index>', methods=['POST'])
+def select_delivery(index):
+    deliveries = get_deliveries()
+
+    if 0 <= index < len(deliveries):
+        selected_delivery = deliveries[index]
+        save_selected_delivery(selected_delivery)
+        flash('Delivery selected successfully!', 'success')
+    else:
+        flash('Invalid delivery selection!', 'danger')
+
+    return redirect(url_for('index'))
 
 
 if __name__ == "__main__":
