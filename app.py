@@ -29,6 +29,17 @@ PRODUCTS = [
     {"id": 1, "name": "RELAPSE Winx Club Tee", "price": 50, "category": "shirts", "image": "winx_club_shirt.jpg"},
     {"id": 3, "name": "GAMBLE Tee", "price": 50, "category": "shirts", "image": "gambleShirt.jpg"},
     {"id": 9, "name": "RELAPSE Stained Shirt", "price": 50, "category": "shirts", "image": "relapseStainShirt.jpg"},
+    {"id": 2, "name": "Demon Nerves Hoodie", "price": 60, "category": "hoodies", "image": "demon_nerves_hoodie.jpg"},
+    {"id": 4, "name": "Hoodie Zip-Up", "price": 120, "category": "hoodies", "image": "hoodiezipup.jpg"},
+    {"id": 5, "name": "Jackety Jacket", "price": 110, "category": "hoodies", "image": "jacketyjacket.jpg"},
+    {"id": 8, "name": "LeCalm Jacket", "price": 120, "category": "hoodies", "image": "lecalmJacket.jpg"},
+    {"id": 6, "name": "RELAPSE Jeans", "price": 80, "category": "pants", "image": "jeansRelapse.jpg"},
+    {"id": 10, "name": "Threaded Jeans", "price": 100, "category": "pants", "image": "threadsJeans.jpg"},
+    {"id": 7, "name": "RELAPSE Jorts", "price": 70, "category": "shorts", "image": "jortsRelapse.jpg"},
+    {"id": 7, "name": "RELAPSE Jorts", "price": 70, "category": "shorts", "image": "jortsRelapse.jpg"},
+    {"id": 6, "name": "RELAPSE Jeans", "price": 80, "category": "pants", "image": "jeansRelapse.jpg"},
+    {"id": 10, "name": "Threaded Jeans", "price": 100, "category": "pants", "image": "threadsJeans.jpg"},
+    {"id": 10, "name": "Threaded Jeans", "price": 70, "category": "shorts", "image": "threadsJeans.jpg"},
 ]
 
 
