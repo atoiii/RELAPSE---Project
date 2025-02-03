@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Delivery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            width: 400px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+        }
+        input {
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            border-color: #333;
+        }
+        .btn {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            margin-top: 5px;
+        }
+        .btn:hover {
+            background-color: #555;
+        }
+        .btn:last-of-type {
+            background-color: #bbb;
+            color: #333;
+        }
+        .btn:last-of-type:hover {
+            background-color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Delivery Information</h2>
+        <form action="/edit_delivery/{{ index }}" method="POST">
+            <label for="country">Country/Region</label>
+            <input type="text" id="country" name="country" value="{{ delivery.country }}" required>
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" value="{{ delivery.address }}" required>
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" value="{{ delivery.city }}" required>
+            <label for="state">State</label>
+            <input type="text" id="state" name="state" value="{{ delivery.state }}">
+            <label for="postcode">Postcode</label>
+            <input type="text" id="postcode" name="postcode" value="{{ delivery.postcode }}">
+            <button type="submit" class="btn">Save Changes</button>
+            <a href="/" class="btn">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>
