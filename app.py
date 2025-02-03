@@ -519,7 +519,7 @@ def modify_product(product_id):
 
 
 
-app.secret_key = 'secret_key'
+
 DB_FILE = "deliveries.db"
 
 
@@ -531,6 +531,7 @@ def get_deliveries():
 def save_deliveries(deliveries):
     with shelve.open(DB_FILE, writeback=True) as db:
         db["deliveries"] = deliveries
+        db.sync()  # Ensure data is written
 
 
 def get_selected_delivery():
@@ -547,7 +548,7 @@ def save_selected_delivery(selected_delivery):
 def index():
     deliveries = get_deliveries()
     selected_delivery = get_selected_delivery()
-    return render_template('website.html', deliveries=deliveries, selected_delivery=selected_delivery)
+    return render_template('checkout.html', deliveries=deliveries, selected_delivery=selected_delivery)
 
 
 @app.route('/add_delivery', methods=['POST'])
@@ -572,7 +573,7 @@ def add_delivery():
     else:
         flash('All fields are required to add a delivery!', 'danger')
 
-    return redirect(url_for('index'))
+    return redirect(url_for('checkout'))
 
 
 @app.route('/edit_delivery/<int:index>', methods=['GET', 'POST'])
@@ -590,7 +591,7 @@ def edit_delivery(index):
             }
             save_deliveries(deliveries)
             flash('Delivery updated successfully!', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('checkout'))
 
     return render_template('edit_delivery.html', delivery=deliveries[index], index=index)
 

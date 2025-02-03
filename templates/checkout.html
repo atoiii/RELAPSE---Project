@@ -172,24 +172,28 @@
             </form>
             <div class="delivery-list">
                 <h2>Saved Deliveries</h2>
-                {% for delivery in deliveries %}
-                <div class="delivery-item">
-                    <div>
-                        <strong>{{ delivery.country }}</strong>, {{ delivery.address }}, {{ delivery.city }}, {{ delivery.state }} {{ delivery.postcode }}
+                {% if deliveries %}
+                    {% for delivery in deliveries %}
+                    <div class="delivery-item">
+                        <div>
+                            <strong>{{ delivery.country }}</strong>, {{ delivery.address }}, {{ delivery.city }}, {{ delivery.state }} {{ delivery.postcode }}
+                        </div>
+                        <div class="action-buttons">
+                            <form action="/select_delivery/{{ loop.index0 }}" method="POST" style="display: inline;">
+                                <button type="submit" id="use">Use</button>
+                            </form>
+                            <form action="/edit_delivery/{{ loop.index0 }}" method="GET" style="display: inline;">
+                                <button type="submit" id="edit">Edit</button>
+                            </form>
+                            <form id="delete-form-{{ loop.index0 }}" action="/delete_delivery/{{ loop.index0 }}" method="POST" style="display: inline;">
+                                <button type="button" id="delete" onclick="confirmDelete({{ loop.index0 }})">Delete</button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="action-buttons">
-                        <form action="/select_delivery/{{ loop.index0 }}" method="POST" style="display: inline;">
-                            <button type="submit" id="use">Use</button>
-                        </form>
-                        <form action="/edit_delivery/{{ loop.index0 }}" method="GET" style="display: inline;">
-                            <button type="submit" id="edit">Edit</button>
-                        </form>
-                        <form id="delete-form-{{ loop.index0 }}" action="/delete_delivery/{{ loop.index0 }}" method="POST" style="display: inline;">
-                            <button type="button" id="delete" onclick="confirmDelete({{ loop.index0 }})">Delete</button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <p>No saved deliveries yet.</p>
+                {% endif %}
             </div>
         </div>
         <div class="right-section">
