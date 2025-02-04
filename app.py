@@ -6,7 +6,7 @@ from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
+from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response, jsonify
 
 app = Flask(__name__)
 app.secret_key = "Relapsing"
@@ -165,7 +165,6 @@ def cart():
                 product = next((p for p in PRODUCTS if p["id"] == product_id), None)
 
                 if product:
-                    # Check if the product with the same size is already in the cart
                     for item in session["cart"]:
                         if item["id"] == product_id and item["size"] == size:
                             item["quantity"] += quantity
@@ -179,7 +178,6 @@ def cart():
                             "quantity": quantity
                         })
 
-                    # Save the updated cart to the database
                     db[email]["cart"] = session["cart"]
                     flash(f"{quantity} {size.upper()} {product['name']} added to cart!", "success")
 
@@ -197,9 +195,37 @@ def cart():
                 flash("Item removed from cart.", "success")
 
         session.modified = True
-        return redirect(url_for("delivery"))
+        return redirect(url_for("cart"))
     return render_template("cart.html", cart=session["cart"])
 
+@app.route("/update-cart", methods=["POST"])
+def update_cart():
+    if "user" not in session:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    user = session["user"]
+    email = user["email"]
+
+    data = request.json
+    product_id = int(data.get("product_id"))
+    new_quantity = int(data.get("quantity"))
+    new_size = data.get("size")
+
+    if "cart" not in session:
+        session["cart"] = []
+
+    with shelve.open("users.db", writeback=True) as db:
+        cart = session["cart"]
+        for item in cart:
+            if item["id"] == product_id and item["size"] == new_size:  # ✅ Fix: Match size too
+                item["quantity"] = new_quantity
+                break
+
+        session["cart"] = cart
+        db[email]["cart"] = cart
+        session.modified = True
+
+    return jsonify({"success": True, "message": "Cart updated successfully", "cart": session["cart"]})
 
 @app.route('/add_to_cart/<int:product_id>', methods=["GET", "POST"])
 def add_to_cart(product_id):
@@ -238,6 +264,24 @@ def add_to_cart(product_id):
 
     return render_template("add_to_cart.html", product=product)
 
+@app.route("/remove-from-cart", methods=["POST"])
+def remove_from_cart():
+    if "user" not in session:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    user = session["user"]
+    email = user["email"]
+
+    data = request.json
+    product_id = int(data.get("product_id"))
+    size = data.get("size")
+
+    with shelve.open("users.db", writeback=True) as db:
+        session["cart"] = [item for item in session["cart"] if not (item["id"] == product_id and item["size"] == size)]
+        db[email]["cart"] = session["cart"]
+        session.modified = True
+
+    return jsonify({"success": True, "message": "Item removed successfully"})
 
 @app.route('/delivery', methods=["GET", "POST"])
 def delivery():
