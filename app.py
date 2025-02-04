@@ -2,13 +2,14 @@ import re
 import shelve
 import smtplib
 from datetime import timedelta
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
+app.secret_key = "Relapsing"
 app.config['SESSION_COOKIE_NAME'] = 'relapse_session'
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript from accessing cookies
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
@@ -375,8 +376,39 @@ def delete_account():
     return render_template("delete_account.html")
 
 
+@app.route('/super_admin_dashboard')
+def super_admin_dashboard():
+    """Exclusive dashboard for the Super Admin."""
+    if "admin" not in session or session["admin"].get("role") != "superadmin":
+        flash("Unauthorized access.", "danger")
+        return redirect(url_for("admin_login"))
+
+    return render_template("super_admin_dashboard.html")
+
+@app.route('/admin/create_admin', methods=["GET", "POST"])
+def create_admin():
+    if "admin" not in session or session["admin"].get("role") != "superadmin":
+        flash("Only the Super Admin can create new admins.", "danger")
+        return redirect(url_for("super_admin_dashboard"))
+
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        with shelve.open("admins.db", writeback=True) as db:
+            if username in db:
+                flash("Admin username already exists.", "danger")
+            else:
+                db[username] = {"username": username, "password": password, "role": "admin"}
+                flash("New admin created successfully!", "success")
+                return redirect(url_for("super_admin_dashboard"))
+
+    return render_template("create_admin.html")
+
+
 @app.route('/admin_login', methods=["GET", "POST"])
 def admin_login():
+    """Allows admins to log in, and checks for Super Admin role."""
     if "admin" in session:
         return redirect(url_for("admin_dashboard"))
 
@@ -388,6 +420,12 @@ def admin_login():
             admin = db.get(username)
             if admin and admin["password"] == password:
                 session["admin"] = admin
+
+                # If Super Admin logs in, redirect to special Super Admin panel
+                if admin.get("role") == "superadmin":
+                    flash("Super Admin login successful!", "success")
+                    return redirect(url_for("super_admin_dashboard"))
+
                 flash("Admin login successful!", "success")
                 return redirect(url_for("admin_dashboard"))
             else:
@@ -396,19 +434,54 @@ def admin_login():
     return render_template("admin_login.html")
 
 
+# Admin Dashboard
 @app.route('/admin_dashboard')
 def admin_dashboard():
     if "admin" not in session:
         flash("Please log in as an admin to access the dashboard.", "danger")
         return redirect(url_for("admin_login"))
 
-    return render_template("admin_dashboard.html")
+    is_super_admin = session["admin"]["role"] == "super_admin"
+
+    with shelve.open("users.db") as db:
+        total_users = len(db)
+
+    with shelve.open("products.db") as db:
+        total_products = len(db)
+
+    with shelve.open("sales.db") as db:
+        total_sales = sum(db.values())
+
+    if is_super_admin:
+        return render_template("super_admin_dashboard.html", total_users=total_users, total_products=total_products, total_sales=total_sales)
+    else:
+        return render_template("admin_dashboard.html", total_users=total_users, total_products=total_products, total_sales=total_sales)
 
 
-@app.route('/admin/create_customer', methods=["GET", "POST"])
+# Admin Logout
+@app.route('/admin_logout')
+def admin_logout():
+    session.pop("admin", None)
+    flash("Admin logged out successfully.", "success")
+    return redirect(url_for("admin_login"))
+
+# ---------------- USER MANAGEMENT ----------------
+
+@app.route('/admin/manage_users')
+def manage_users():
+    if "admin" not in session:
+        flash("Please log in as an admin.", "danger")
+        return redirect(url_for("admin_login"))
+
+    with shelve.open("users.db") as db:
+        users = list(db.values())
+
+    return render_template("manage_users.html", users=users)
+
+@app.route('/admin/create_user', methods=["GET", "POST"])
 def create_customer():
     if "admin" not in session:
-        flash("Please log in as an admin to access this page.", "danger")
+        flash("Please log in as an admin.", "danger")
         return redirect(url_for("admin_login"))
 
     if request.method == "POST":
@@ -417,38 +490,15 @@ def create_customer():
         last_name = request.form["last_name"]
         password = request.form["password"]
 
-        with shelve.open("users.db") as db:
+        with shelve.open("users.db", writeback=True) as db:
             if email in db:
-                flash("A customer with this email already exists.", "danger")
+                flash("A user with this email already exists.", "danger")
             else:
-                db[email] = {
-                    "email": email,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "password": password,
-                    "membership_status": "Regular",
-                    "cart": []
-                }
-                flash("Customer created successfully.", "success")
+                db[email] = {"email": email, "first_name": first_name, "last_name": last_name, "password": password, "membership_status": "Regular", "cart": []}
+                log_admin_action(f"Created user: {email}")
+                flash("User created successfully.", "success")
 
     return render_template("create_customer.html")
-
-
-@app.route('/admin/delete_customer/<email>', methods=["POST"])
-def delete_customer(email):
-    if "admin" not in session:
-        flash("Please log in as an admin to access this page.", "danger")
-        return redirect(url_for("admin_login"))
-
-    with shelve.open("users.db") as db:
-        if email in db:
-            del db[email]
-            flash("Customer deleted successfully.", "success")
-        else:
-            flash("Customer not found.", "danger")
-
-    return redirect(url_for("admin_dashboard"))
-
 
 @app.route('/admin/modify_customer/<email>', methods=["GET", "POST"])
 def modify_customer(email):
@@ -466,17 +516,53 @@ def modify_customer(email):
             customer["first_name"] = request.form["first_name"]
             customer["last_name"] = request.form["last_name"]
             customer["email"] = request.form["email"]
-            db[customer["email"]] = customer
+            customer["membership_status"] = request.form["membership_status"]
             flash("Customer details updated successfully.", "success")
             return redirect(url_for("admin_dashboard"))
 
     return render_template("modify_customer.html", customer=customer)
 
 
+@app.route('/admin/delete_user/<email>', methods=["POST"])
+def delete_customer(email):
+    if "admin" not in session:
+        flash("Please log in as an admin.", "danger")
+        return redirect(url_for("admin_login"))
+
+    with shelve.open("users.db", writeback=True) as db:
+        if email in db:
+            del db[email]
+            log_admin_action(f"Deleted user: {email}")
+            flash("User deleted.", "success")
+
+    return redirect(url_for("manage_users"))
+
+# ---------------- PRODUCT MANAGEMENT ----------------
+
+@app.route('/admin/manage_products')
+def manage_products():
+    if "admin" not in session:
+        flash("Please log in as an admin.", "danger")
+        return redirect(url_for("admin_login"))
+
+    with shelve.open("products.db") as db:
+        products = list(db.values())
+
+    return render_template("manage_products.html", products=products)
+
+@app.route('/admin/manage_promo_codes')
+def manage_promo_codes():
+    if "admin" not in session:
+        flash("Please log in as an admin to access this page.", "danger")
+        return redirect(url_for("admin_login"))
+
+    return render_template("manage_promo_codes.html")
+
+
 @app.route('/admin/create_product', methods=["GET", "POST"])
 def create_product():
     if "admin" not in session:
-        flash("Please log in as an admin to access this page.", "danger")
+        flash("Please log in as an admin.", "danger")
         return redirect(url_for("admin_login"))
 
     if request.method == "POST":
@@ -486,67 +572,40 @@ def create_product():
         description = request.form["description"]
         image = request.files["image"]
 
-        # Save product image in static folder
         image_filename = f"static/{image.filename}"
         image.save(image_filename)
 
         with shelve.open("products.db", writeback=True) as db:
             product_id = len(db) + 1
-            db[str(product_id)] = {
-                "id": product_id,
-                "name": name,
-                "price": price,
-                "category": category,
-                "description": description,
-                "image": image_filename
-            }
+            db[str(product_id)] = {"id": product_id, "name": name, "price": price, "category": category, "description": description, "image": image_filename}
+            log_admin_action(f"Created product: {name}")
             flash("Product created successfully.", "success")
 
     return render_template("create_product.html")
 
+# ---------------- ADMIN CHANGELOG ----------------
 
-@app.route('/admin/delete_product/<product_id>', methods=["POST"])
-def delete_product(product_id):
+@app.route('/admin/changelog')
+def admin_changelog():
     if "admin" not in session:
-        flash("Please log in as an admin to access this page.", "danger")
+        flash("Please log in as an admin.", "danger")
         return redirect(url_for("admin_login"))
 
-    with shelve.open("products.db") as db:
-        if product_id in db:
-            del db[product_id]
-            flash("Product deleted successfully.", "success")
-        else:
-            flash("Product not found.", "danger")
+    with shelve.open("admin_logs.db") as db:
+        logs = list(db.values())
 
-    return redirect(url_for("admin_dashboard"))
+    return render_template("admin_changelog.html", changelog=logs)
 
-
-@app.route('/admin/modify_product/<product_id>', methods=["GET", "POST"])
-def modify_product(product_id):
-    if "admin" not in session:
-        flash("Please log in as an admin to access this page.", "danger")
-        return redirect(url_for("admin_login"))
-
-    with shelve.open("products.db", writeback=True) as db:
-        product = db.get(product_id)
-        if not product:
-            flash("Product not found.", "danger")
-            return redirect(url_for("admin_dashboard"))
-
-        if request.method == "POST":
-            product["name"] = request.form["name"]
-            product["price"] = float(request.form["price"])
-            product["category"] = request.form["category"]
-            product["description"] = request.form["description"]
-            db[product_id] = product
-            flash("Product updated successfully.", "success")
-            return redirect(url_for("admin_dashboard"))
-
-    return render_template("modify_product.html", product=product)
+def log_admin_action(action):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with shelve.open("admin_logs.db", writeback=True) as db:
+        db[str(len(db) + 1)] = {"timestamp": timestamp, "admin": session.get("admin", {}).get("username", "Unknown"), "action": action}
 
 
 if __name__ == "__main__":
     app.secret_key = 'secret_key'
+
+
 DB_FILE = "deliveries.db"
 
 

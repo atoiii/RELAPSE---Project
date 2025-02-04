@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Super Admin Dashboard</h2>
+    <p class="text-center">Welcome, Super Admin! You have full control over the system.</p>
+
+    <div class="d-flex justify-content-center">
+        <a href="{{ url_for('create_admin') }}" class="btn btn-primary mx-2">Create Admin</a>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary mx-2">Manage Admins</a>
+    </div>
+</div>
+{% endblock %}
