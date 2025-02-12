@@ -419,7 +419,7 @@ def delete_account():
 
 @app.route('/super_admin_dashboard')
 def super_admin_dashboard():
-    """Exclusive dashboard for the Super Admin."""
+    #dashboard Admin
     if "admin" not in session or session["admin"].get("role") != "superadmin":
         flash("Unauthorized access.", "danger")
         return redirect(url_for("admin_login"))
@@ -449,7 +449,7 @@ def create_admin():
 
 @app.route('/admin_login', methods=["GET", "POST"])
 def admin_login():
-    """Allows admins to log in, and checks for Super Admin role."""
+    #allow admin to login
     if "admin" in session:
         return redirect(url_for("admin_dashboard"))
 

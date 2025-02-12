@@ -1,7 +1,7 @@
 import shelve
 
 def create_super_admin():
-    """Creates the first Super Admin manually in the database."""
+    #Create Admin manually
     with shelve.open("admins.db", writeback=True) as db:
         super_admin_username = "superadmin"
         super_admin_password = "R3L4P534DM1N"
