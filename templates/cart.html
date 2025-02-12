@@ -32,7 +32,7 @@
                     <td>
                         <div class="d-flex align-items-center">
                             <button class="btn btn-outline-secondary btn-sm quantity-decrease">-</button>
-                            <input type="number" name="quantity" value="{{ item.quantity }}" class="form-control text-center mx-1 quantity-input" style="width: 50px;" min="1">
+                            <input type="number" name="quantity" value="{{ item.quantity }}" required minlength="1" maxlength="10" class="form-control text-center mx-1 quantity-input" style="width: 50px;" min="1">
                             <button class="btn btn-outline-secondary btn-sm quantity-increase">+</button>
                         </div>
                     </td>
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function() {
             let newValue = Math.max(1, parseInt(input.value) + (this.classList.contains("quantity-increase") ? 1 : -1));
             input.value = newValue;
             updateTotal(row, newValue);
-            updateCart(row);  // ✅ Fix: Update session immediately
+            updateCart(row);
         });
     });
 
@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function() {
             let newValue = Math.max(1, parseInt(this.value) || 1);
             this.value = newValue;
             updateTotal(row, newValue);
-            updateCart(row);  // ✅ Fix: Update session immediately
+            updateCart(row);
         });
     });
 

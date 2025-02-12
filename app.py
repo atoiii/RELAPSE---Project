@@ -182,15 +182,12 @@ def cart():
                     flash(f"{quantity} {size.upper()} {product['name']} added to cart!", "success")
 
             elif "remove_product_id" in request.form:
-                # Remove product from the cart entirely
                 product_id = int(request.form["remove_product_id"])
                 size = request.form["size"]
 
-                # Find and remove the item from the cart
                 session["cart"] = [item for item in session["cart"] if
                                    not (item["id"] == product_id and item["size"] == size)]
 
-                # Save the updated cart to the database
                 db[email]["cart"] = session["cart"]
                 flash("Item removed from cart.", "success")
 
