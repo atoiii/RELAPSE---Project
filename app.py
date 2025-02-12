@@ -303,7 +303,7 @@ def checkout():
         session["cart"] = []  # Clear cart after payment
         session.modified = True
         flash("Payment successful! Your order has been placed.", "success")
-        return redirect(url_for("home"))
+        return redirect(url_for("ORDER DONE"))
 
     return render_template("checkout.html")
 

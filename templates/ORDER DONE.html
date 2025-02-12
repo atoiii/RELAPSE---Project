@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .thank-you-container {
+        text-align: center;
+        background-color: #f4f4f4; /* Adjusted for a light gray background */
+        padding: 50px;
+        max-width: 700px;
+        margin: auto;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .customer-greeting {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .message {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .closing, .team-name {
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+</style>
+<div class="thank-you-container">
+    <h1>Thank you for shopping!</h1>
+    <p class="customer-greeting">Dear Valued Customer,</p>
+
+    <p class="message">
+        We truly appreciate your purchase and are delighted to have you as part of our retail family. <br>
+        Your support means the world to us, and we are committed to providing you with the best products and services. <br>
+        If you have any questions or need further assistance, <br>
+        please don’t hesitate to reach out. <br>
+        We look forward to serving you again soon!
+    </p>
+
+    <p class="closing">Warm regards,</p>
+    <p class="team-name">RELAPSE Team</p>
+</div>
+
+{% endblock %}
