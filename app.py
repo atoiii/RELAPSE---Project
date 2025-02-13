@@ -7,6 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response, jsonify
+from mainProduct import create_product, manage_products, edit_product, delete_product
 
 app = Flask(__name__)
 app.secret_key = "Relapsing"
@@ -15,6 +16,11 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript from accessin
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Prevent cross-site request issues
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # For "Remember Me"
+
+app.add_url_rule("/admin/create_product", view_func=create_product, methods=["GET", "POST"])
+app.add_url_rule("/admin/manage_products", view_func=manage_products)  # Assuming this lists products
+app.add_url_rule("/admin/edit_product/<int:id>/", view_func=edit_product, methods=["GET", "POST"])
+app.add_url_rule("/admin/delete_product/<int:id>", view_func=delete_product, methods=["POST"])
 
 PRODUCTS = [
     {"id": 1, "name": "RELAPSE Winx Club Tee", "price": 50, "category": "shirts", "image": "winx_club_shirt.jpg"},
@@ -580,17 +586,6 @@ def delete_customer(email):
 
 # ---------------- PRODUCT MANAGEMENT ----------------
 
-@app.route('/admin/manage_products')
-def manage_products():
-    if "admin" not in session:
-        flash("Please log in as an admin.", "danger")
-        return redirect(url_for("admin_login"))
-
-    with shelve.open("products.db") as db:
-        products = list(db.values())
-
-    return render_template("manage_products.html", products=products)
-
 @app.route('/admin/manage_promo_codes')
 def manage_promo_codes():
     if "admin" not in session:
@@ -599,30 +594,6 @@ def manage_promo_codes():
 
     return render_template("manage_promo_codes.html")
 
-
-@app.route('/admin/create_product', methods=["GET", "POST"])
-def create_product():
-    if "admin" not in session:
-        flash("Please log in as an admin.", "danger")
-        return redirect(url_for("admin_login"))
-
-    if request.method == "POST":
-        name = request.form["name"]
-        price = float(request.form["price"])
-        category = request.form["category"]
-        description = request.form["description"]
-        image = request.files["image"]
-
-        image_filename = f"static/{image.filename}"
-        image.save(image_filename)
-
-        with shelve.open("products.db", writeback=True) as db:
-            product_id = len(db) + 1
-            db[str(product_id)] = {"id": product_id, "name": name, "price": price, "category": category, "description": description, "image": image_filename}
-            log_admin_action(f"Created product: {name}")
-            flash("Product created successfully.", "success")
-
-    return render_template("create_product.html")
 
 # ---------------- ADMIN CHANGELOG ----------------
 
