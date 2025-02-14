@@ -104,7 +104,6 @@
 </head>
 <body>
 {% with messages = get_flashed_messages(with_categories=true) %}
-<<<<<<< Updated upstream
 {% if messages %}
 {% for category, message in messages %}
 <center>
@@ -115,46 +114,6 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-=======
-    {% if messages %}
-    {% for category, message in messages %}
-        <center>
-            <div class="alert alert-{{ category }}" role="alert">
-                {{ message }}
-            </div>
-        </center>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-    <div class="content">
-        <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-black">
-            <div class="container-fluid">
-                <a href="/" class="navbar-brand">RELAPSE</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item"><a href="/new" class="nav-link">New</a></li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="clothingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Clothing</a>
-                            <ul class="dropdown-menu" aria-labelledby="clothingDropdown">
-                                <li><a href="/clothing/shirts" class="dropdown-item">Shirts</a></li>
-                                <li><a href="/clothing/pants" class="dropdown-item">Pants</a></li>
-                                <li><a href="/clothing/shorts" class="dropdown-item">Shorts</a></li>
-                                <li><a href="/clothing/hoodies" class="dropdown-item">Hoodies</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item"><a href="/sales" class="nav-link">Sales</a></li>
-                        <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
-                        <li class="nav-item"><a href="/cart" class="nav-link"><img src="/static/cart_icon.jpg" alt="Cart" style="height: 30px; width: 30px;"></a></li>
-                        <li class="nav-item"><a href="/login" class="nav-link"><img src="/static/login_icon.jpg" alt="Login" style="height: 30px; width: 30px;"></a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
->>>>>>> Stashed changes
 
 <div class="content">
     <!-- Navbar -->

@@ -21,11 +21,10 @@
                 <td>{{ product.category }}</td>
                 <td>
                     <a href="{{ url_for('manage_products', product_id=product.id) }}" class="btn btn-warning">Edit</a>
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
-
+                    <form method="POST" action="{{ url_for('delete_product', product_id=product.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}
