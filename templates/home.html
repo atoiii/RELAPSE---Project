@@ -76,8 +76,8 @@
     <div class="carousel-item active">
       <img src="/static/Home Pic 1.jpeg" alt="Home 1" class="d-block w-100">
         <div class="carousel-caption">
-<!--    <h2>Welcome To RELAPSE</h2>-->
-<!--    <p>Recycled and environmentally friendly clothes</p>-->
+    <h2>Welcome To RELAPSE</h2>
+    <p>Recycled and environmentally friendly clothes</p>
   </div>
     </div>
     <div class="carousel-item">
@@ -112,7 +112,7 @@
                     <div class="mt-auto w-100">
                         <form action="/cart" method="POST">
                             <input type="hidden" name="product_id" value="{{ product.id }}">
-                            <button type="submit" class="btn btn-primary w-100">Add to Cart</button>
+                            <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-primary">Add to Cart</a>
                         </form>
                     </div>
                 </div>
