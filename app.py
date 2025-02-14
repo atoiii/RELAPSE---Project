@@ -8,7 +8,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response, jsonify
-from mainProduct import create_product, manage_products, edit_product, delete_product
 
 app = Flask(__name__)
 app.secret_key = "Relapsing"
@@ -140,9 +139,9 @@ def cart():
             email = user["email"]
 
             if "product_id" in request.form:
-                product_id = int(request.form["product_id"])
-                size = request.form["size"]
-                quantity = int(request.form["quantity"])
+                product_id = int(request.form.get("product_id"))
+                size = request.form.get("size")
+                quantity = int(request.form.get("quantity"))
                 product = next((p for p in list(shelve.open("products.db").values()) if p["id"] == product_id), None)
 
                 if product:
