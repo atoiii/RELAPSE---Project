@@ -445,14 +445,13 @@ def create_admin():
 # Admin Dashboard
 @app.route('/admin_dashboard')
 def admin_dashboard():
-    if "admin" not in session:
+    if session['role'] != 'admin' and session['role'] != 'superadmin':
         flash("Please log in as an admin to access the dashboard.", "danger")
         return redirect(url_for("login"))
 
-    is_super_admin = session["admin"]["role"] == "super_admin"
 
     with shelve.open("users.db") as db:
-        total_users = len(db)
+        total_users = sum(1 for i in db if db.get(i, {}).get('role') not in ['admin', 'superadmin'])
 
     with shelve.open("products.db") as db:
         total_products = len(db)
@@ -460,16 +459,13 @@ def admin_dashboard():
     with shelve.open("sales.db") as db:
         total_sales = sum(db.values())
 
-    if is_super_admin:
-        return render_template("super_admin_dashboard.html", total_users=total_users, total_products=total_products, total_sales=total_sales)
-    else:
-        return render_template("admin_dashboard.html", total_users=total_users, total_products=total_products, total_sales=total_sales)
+    return render_template("admin_dashboard.html", total_users=total_users, total_products=total_products, total_sales=total_sales)
 
 # ---------------- USER MANAGEMENT ----------------
 
 @app.route('/admin/manage_users')
 def manage_users():
-    if "admin" not in session:
+    if session['role'] != 'admin' and session['role'] != 'superadmin':
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -480,7 +476,7 @@ def manage_users():
 
 @app.route('/admin/create_user', methods=["GET", "POST"])
 def create_customer():
-    if "admin" not in session:
+    if session['role'] != 'admin' and session['role'] != 'superadmin':
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -544,7 +540,7 @@ def delete_customer(email):
 
 @app.route('/admin/manage_products')
 def manage_products():
-    if "admin" not in session:
+    if session['role'] != 'admin' and session['role'] != 'superadmin':
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -556,7 +552,7 @@ def manage_products():
 
 @app.route('/admin/manage_promo_codes')
 def manage_promo_codes():
-    if "admin" not in session:
+    if session['role'] != 'admin' and session['role'] != 'superadmin':
         flash("Please log in as an admin to access this page.", "danger")
         return redirect(url_for("login"))
 
@@ -566,7 +562,7 @@ def manage_promo_codes():
 
 @app.route('/admin/create_product', methods=["GET", "POST"])
 def create_product():
-    if "admin" not in session:
+    if session['role'] != 'admin' and session['role'] != 'superadmin':
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -606,7 +602,7 @@ def create_product():
 
 @app.route('/admin/changelog')
 def admin_changelog():
-    if "admin" not in session:
+    if session['role'] != 'admin' and session['role'] != 'superadmin':
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
