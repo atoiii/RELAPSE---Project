@@ -18,41 +18,6 @@ app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Prevent cross-site request issues
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # For "Remember Me"
 
-<<<<<<< Updated upstream
-app.add_url_rule("/admin/create_product", view_func=create_product, methods=["GET", "POST"])
-app.add_url_rule("/admin/manage_products", view_func=manage_products)  # Assuming this lists products
-app.add_url_rule("/admin/edit_product/<int:id>/", view_func=edit_product, methods=["GET", "POST"])
-app.add_url_rule("/admin/delete_product/<int:id>", view_func=delete_product, methods=["POST"])
-
-PRODUCTS = [
-    {"id": 1, "name": "RELAPSE Winx Club Tee", "price": 50, "category": "shirts", "image": "winx_club_shirt.jpg"},
-    {"id": 2, "name": "Demon Nerves Hoodie", "price": 60, "category": "hoodies", "image": "demon_nerves_hoodie.jpg"},
-    {"id": 3, "name": "GAMBLE Tee", "price": 50, "category": "shirts", "image": "gambleShirt.jpg"},
-    {"id": 4, "name": "Hoodie Zip-Up", "price": 120, "category": "hoodies", "image": "hoodiezipup.jpg"},
-    {"id": 5, "name": "Jackety Jacket", "price": 110, "category": "hoodies", "image": "jacketyjacket.jpg"},
-    {"id": 6, "name": "RELAPSE Jeans", "price": 80, "category": "pants", "image": "jeansRelapse.jpg"},
-    {"id": 7, "name": "RELAPSE Jorts", "price": 70, "category": "shorts", "image": "jortsRelapse.jpg"},
-    {"id": 8, "name": "LeCalm Jacket", "price": 120, "category": "hoodies", "image": "lecalmJacket.jpg"},
-    {"id": 9, "name": "RELAPSE Stained Shirt", "price": 50, "category": "shirts", "image": "relapseStainShirt.jpg"},
-    {"id": 10, "name": "Threaded Jeans", "price": 100, "category": "pants", "image": "threadsJeans.jpg"},
-    {"id": 1, "name": "RELAPSE Winx Club Tee", "price": 50, "category": "shirts", "image": "winx_club_shirt.jpg"},
-    {"id": 3, "name": "GAMBLE Tee", "price": 50, "category": "shirts", "image": "gambleShirt.jpg"},
-    {"id": 9, "name": "RELAPSE Stained Shirt", "price": 50, "category": "shirts", "image": "relapseStainShirt.jpg"},
-    {"id": 2, "name": "Demon Nerves Hoodie", "price": 60, "category": "hoodies", "image": "demon_nerves_hoodie.jpg"},
-    {"id": 4, "name": "Hoodie Zip-Up", "price": 120, "category": "hoodies", "image": "hoodiezipup.jpg"},
-    {"id": 5, "name": "Jackety Jacket", "price": 110, "category": "hoodies", "image": "jacketyjacket.jpg"},
-    {"id": 8, "name": "LeCalm Jacket", "price": 120, "category": "hoodies", "image": "lecalmJacket.jpg"},
-    {"id": 6, "name": "RELAPSE Jeans", "price": 80, "category": "pants", "image": "jeansRelapse.jpg"},
-    {"id": 10, "name": "Threaded Jeans", "price": 100, "category": "pants", "image": "threadsJeans.jpg"},
-    {"id": 7, "name": "RELAPSE Jorts", "price": 70, "category": "shorts", "image": "jortsRelapse.jpg"},
-    {"id": 7, "name": "RELAPSE Jorts", "price": 70, "category": "shorts", "image": "jortsRelapse.jpg"},
-    {"id": 6, "name": "RELAPSE Jeans", "price": 80, "category": "pants", "image": "jeansRelapse.jpg"},
-    {"id": 10, "name": "Threaded Jeans", "price": 100, "category": "pants", "image": "threadsJeans.jpg"},
-    {"id": 10, "name": "Threaded Jeans", "price": 70, "category": "shorts", "image": "threadsJeans.jpg"},
-]
-
-=======
->>>>>>> Stashed changes
 
 @app.route('/')
 def home():
@@ -598,6 +563,18 @@ def delete_customer(email):
 
 # ---------------- PRODUCT MANAGEMENT ----------------
 
+@app.route('/admin/manage_products')
+def manage_products():
+    if "admin" not in session:
+        flash("Please log in as an admin.", "danger")
+        return redirect(url_for("admin_login"))
+
+    with shelve.open("products.db") as db:
+        products = list(db.values())
+
+    return render_template("manage_products.html", products=products)
+
+
 @app.route('/admin/manage_promo_codes')
 def manage_promo_codes():
     if "admin" not in session:
@@ -607,8 +584,7 @@ def manage_promo_codes():
     return render_template("manage_promo_codes.html")
 
 
-<<<<<<< Updated upstream
-=======
+
 @app.route('/admin/create_product', methods=["GET", "POST"])
 def create_product():
     if "admin" not in session:
@@ -647,7 +623,6 @@ def create_product():
 
     return render_template("create_product.html")
 
->>>>>>> Stashed changes
 # ---------------- ADMIN CHANGELOG ----------------
 
 @app.route('/admin/changelog')

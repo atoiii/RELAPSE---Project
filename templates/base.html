@@ -8,14 +8,23 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
         html, body {
-             overflow-x: hidden;
-             overflow-y: auto;
+            background: #F8F8F8;
+            color: black;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         .content {
-            min-height: 100%;
             display: flex;
             flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main {
+            flex-grow: 1;
         }
 
         .footer {
@@ -23,99 +32,66 @@
             color: white;
             text-align: center;
             padding: 10px 0;
-            position: relative;
-            bottom: 0;
             width: 100%;
         }
 
-        .main {
-            flex: 1;
-        }
-
+        /* Navbar Customization */
         .navbar {
-            height: 100px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 30px;
-            background-color: black !important;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-        }
-
-        .navbar .container-fluid {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-        }
-
-        .navbar-brand {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
+            justify-content: start !important;
+            padding: 10px 20px;
         }
 
         .navbar-brand img {
-            height: 75px;
+            height: 50px;
             width: auto;
         }
 
+        /* Add spacing between nav items */
         .navbar-nav {
-            flex-grow: 1;
             display: flex;
-            align-items: center;
-            width: 100%;
+            gap: 25px; /* Increased space between menu items */
         }
 
-        .nav-item {
-            padding: 0 50px;
+        .navbar-nav .nav-item {
+            padding-right: 20px; /* Extra spacing for better alignment */
         }
 
-        .nav-link {
-            color: white !important;
-            font-size: 16px;
-            text-transform: uppercase;
-            transition: 0.3s;
-        }
-
-        .nav-link:hover {
-            color: red !important;
-        }
-
-        .nav-about {
-            margin-left: 650px;
-            padding-right: 20px;
-            margin-left: 500px
-        }
-
+        /* Align icons to the right */
         .nav-icons {
             display: flex;
-            align-items: right;
+            align-items: center;
+            margin-left: auto;
+            gap: 15px; /* Space between cart & login */
         }
-        .nav-logo {
-            padding-left: 20px;
+
+        .nav-icons .nav-link img {
+            height: 25px;
+            width: 25px;
+        }
+
+        /* Navbar stays at the top */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* Make the navbar text larger */
+.navbar-nav .nav-link {
+    font-size: 18px; /* Adjust size as needed */
+    font-weight: bold; /* Makes text slightly thicker */
+    text-transform: uppercase; /* Optional: Makes text uppercase */
+}
+
+/* Increase dropdown text size */
+.navbar-nav .dropdown-menu .dropdown-item {
+    font-size: 16px; /* Adjust size for dropdown items */
+}
 
     </style>
 </head>
 <body>
-{% with messages = get_flashed_messages(with_categories=true) %}
-<<<<<<< Updated upstream
-{% if messages %}
-{% for category, message in messages %}
-<center>
-    <div class="alert alert-{{ category }}" role="alert">
-        {{ message }}
-    </div>
-</center>
-{% endfor %}
-{% endif %}
-{% endwith %}
-=======
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
         <center>
@@ -127,18 +103,24 @@
     {% endif %}
     {% endwith %}
     <div class="content">
-        <!-- Navbar -->
+
+    <!-- Navbar -->
         <nav class="navbar navbar-expand-lg navbar-dark bg-black">
             <div class="container-fluid">
-                <a href="/" class="navbar-brand">RELAPSE</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <a href="/" class="navbar-brand">
+                    <img src="/static/RELAPSE.jpg" alt="RELAPSE Logo">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
-                        <li class="nav-item"><a href="/new" class="nav-link">New</a></li>
+                        <!-- Clothing Dropdown -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="clothingDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Clothing</a>
+                            <a class="nav-link dropdown-toggle" href="#" id="clothingDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">Clothing</a>
                             <ul class="dropdown-menu" aria-labelledby="clothingDropdown">
                                 <li><a href="/clothing/shirts" class="dropdown-item">Shirts</a></li>
                                 <li><a href="/clothing/pants" class="dropdown-item">Pants</a></li>
@@ -146,52 +128,22 @@
                                 <li><a href="/clothing/hoodies" class="dropdown-item">Hoodies</a></li>
                             </ul>
                         </li>
+
                         <li class="nav-item"><a href="/sales" class="nav-link">Sales</a></li>
+                        <li class="nav-item"><a href="/membership" class="nav-link">Membership</a></li>
                         <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
-                        <li class="nav-item"><a href="/cart" class="nav-link"><img src="/static/cart_icon.jpg" alt="Cart" style="height: 30px; width: 30px;"></a></li>
-                        <li class="nav-item"><a href="/login" class="nav-link"><img src="/static/login_icon.jpg" alt="Login" style="height: 30px; width: 30px;"></a></li>
                     </ul>
+
+                    <!-- Icons aligned to the right -->
+                    <div class="nav-icons">
+                        <a href="/cart" class="nav-link"><img src="/static/cart_icon.jpg" alt="Cart"></a>
+                        <a href="/login" class="nav-link"><img src="/static/login_icon.jpg" alt="Login"></a>
+                    </div>
                 </div>
             </div>
         </nav>
->>>>>>> Stashed changes
 
-<div class="content">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
-        <div class="container-fluid">
-            <a href="/" class="navbar-brand"><img src="static/RELAPSE.jpg" width="65" height="65"></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="clothingDropdown" role="button"
-                           data-bs-toggle="dropdown" aria-expanded="false">Clothing</a>
-                        <ul class="dropdown-menu" aria-labelledby="clothingDropdown">
-                            <li><a href="/clothing/shirts" class="dropdown-item">Shirts</a></li>
-                            <li><a href="/clothing/pants" class="dropdown-item">Pants</a></li>
-                            <li><a href="/clothing/shorts" class="dropdown-item">Shorts</a></li>
-                            <li><a href="/clothing/hoodies" class="dropdown-item">Hoodies</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item"><a href="/sales" class="nav-link">Sales</a></li>
-                    <li class="nav-item"><a href="/membership" class="nav-link">Membership</a></li>
 
-                    <!-- Push "About" link to the right -->
-                    <li class="nav-about"><a href="/about" class="nav-link">About</a></li>
-
-                    <!-- Icons all the way to the right -->
-                    <div class="nav-icons">
-                        <li class="nav-logo"><a href="/cart" class="nav-link"><img src="/static/cart_icon.jpg" alt="Cart" style="height: 30px; width: 30px;"></a></li>
-                        <li class="nav-logo"><a href="/login" class="nav-link"><img src="/static/login_icon.jpg" alt="Login" style="height: 30px; width: 30px;"></a></li>
-                    </div>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
     <!-- Main Content -->
     <div class="main">
