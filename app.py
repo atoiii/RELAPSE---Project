@@ -60,25 +60,26 @@ def login():
         password = request.form["password"]
         remember = "remember" in request.form
 
-        with shelve.open("users.db") as db:
+        with shelve.open("users.db", flag='r') as db:
             user = db.get(email)
             if user and user["password"] == password:
                 session["user"] = user
                 session["role"] = user.get("role")
+                print(session['role'])
                 session["cart"] = user.get("cart", [])
                 # Set session persistence based on "Remember Me"
-                if remember:
-                    session.permanent = True
-                else:
-                    session.permanent = False  # Temporary session
+                # if remember:
+                #     session.permanent = True
+                # else:
+                #     session.permanent = False  # Temporary session
                     # If Super Admin logs in, redirect to special Super Admin panel
-                if user.get("role") == "superadmin":
+                if session['role'] == "superadmin":
                     flash("Super Admin login successful!", "success")
                     return redirect(url_for("super_admin_dashboard"))
-                elif user.get("role") == "admin":
+                if session['role'] == "admin":
                     flash("Admin login successful!", "success")
                     return redirect(url_for("admin_dashboard"))
-                else:
+                if session['role'] == 'user':
                     flash(f"Welcome back, {user['first_name']}!", "success")
                     return redirect(url_for("profile"))
             else:
@@ -114,7 +115,7 @@ def signup():
             flash("Invalid email address!", "danger")
             return render_template("signup.html")
 
-        with shelve.open("users.db") as db:
+        with shelve.open("users.db", writeback=True) as db:
             if email in db:
                 flash("Account already exists!", "danger")
             else:
@@ -414,7 +415,7 @@ def delete_account():
 @app.route('/super_admin_dashboard')
 def super_admin_dashboard():
     #dashboard Admin
-    if "admin" not in session or session["admin"].get("role") != "superadmin":
+    if session['role'] != 'admin' and session['role'] != 'superadmin':
         flash("Unauthorized access.", "danger")
         return redirect(url_for("login"))
 
@@ -422,7 +423,7 @@ def super_admin_dashboard():
 
 @app.route('/admin/create_admin', methods=["GET", "POST"])
 def create_admin():
-    if "admin" not in session or session["admin"].get("role") != "superadmin":
+    if session['role'] != 'superadmin':
         flash("Only the Super Admin can create new admins.", "danger")
         return redirect(url_for("super_admin_dashboard"))
 
