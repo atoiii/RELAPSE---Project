@@ -1,5 +1,6 @@
 import re
 import shelve
+import os
 import smtplib
 from datetime import timedelta
 from datetime import datetime
@@ -17,6 +18,7 @@ app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Prevent cross-site request issues
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # For "Remember Me"
 
+<<<<<<< Updated upstream
 app.add_url_rule("/admin/create_product", view_func=create_product, methods=["GET", "POST"])
 app.add_url_rule("/admin/manage_products", view_func=manage_products)  # Assuming this lists products
 app.add_url_rule("/admin/edit_product/<int:id>/", view_func=edit_product, methods=["GET", "POST"])
@@ -49,10 +51,15 @@ PRODUCTS = [
     {"id": 10, "name": "Threaded Jeans", "price": 70, "category": "shorts", "image": "threadsJeans.jpg"},
 ]
 
+=======
+>>>>>>> Stashed changes
 
 @app.route('/')
 def home():
-    return render_template("home.html", products=PRODUCTS)
+    with shelve.open("products.db") as db:
+        products = list(db.values())  # This will get all products from the db
+    return render_template('home.html', products=products)
+
 
 
 @app.route('/membership')
@@ -72,8 +79,11 @@ def about():
 
 @app.route('/clothing/<category>')
 def clothing(category):
-    filtered_products = [product for product in PRODUCTS if product["category"] == category]
+    with shelve.open("products.db") as db:
+        products = list(db.values())  # Get all products from DB
+    filtered_products = [product for product in products if product["category"] == category]
     return render_template("clothing.html", category=category, products=filtered_products)
+
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -168,7 +178,7 @@ def cart():
                 product_id = int(request.form["product_id"])
                 size = request.form["size"]
                 quantity = int(request.form["quantity"])
-                product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+                product = next((p for p in list(shelve.open("products.db").values()) if p["id"] == product_id), None)
 
                 if product:
                     for item in session["cart"]:
@@ -236,7 +246,7 @@ def add_to_cart(product_id):
         flash("Please log in to add items to your cart.", "danger")
         return redirect(url_for("login"))
 
-    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    product = next((p for p in list(shelve.open("products.db").values()) if p["id"] == product_id), None)
     if not product:
         flash("Product not found.", "danger")
         return redirect(url_for("home"))
@@ -537,6 +547,7 @@ def create_customer():
         last_name = request.form["last_name"]
         password = request.form["password"]
 
+        # Open and write to the users.db
         with shelve.open("users.db", writeback=True) as db:
             if email in db:
                 flash("A user with this email already exists.", "danger")
@@ -546,6 +557,7 @@ def create_customer():
                 flash("User created successfully.", "success")
 
     return render_template("create_customer.html")
+
 
 @app.route('/admin/modify_customer/<email>', methods=["GET", "POST"])
 def modify_customer(email):
@@ -595,6 +607,47 @@ def manage_promo_codes():
     return render_template("manage_promo_codes.html")
 
 
+<<<<<<< Updated upstream
+=======
+@app.route('/admin/create_product', methods=["GET", "POST"])
+def create_product():
+    if "admin" not in session:
+        flash("Please log in as an admin.", "danger")
+        return redirect(url_for("admin_login"))
+
+    if request.method == "POST":
+        name = request.form["name"]
+        price = float(request.form["price"])
+        category = request.form["category"]
+        description = request.form["description"]
+        image = request.files["image"]
+
+        if image and image.filename:  # Ensure a file was uploaded
+            # **Save Image Directly to Static Folder**
+            image_path = os.path.join(app.root_path, 'static', image.filename)
+            image.save(image_path)  # Save inside static/
+            image_url = f"{image.filename}"  # Use the relative path for the image URL
+        else:
+            image_url = None  # Handle cases where no image is uploaded
+
+        with shelve.open("products.db", writeback=True) as db:
+            product_ids = [int(key) for key in db.keys() if key.isdigit()]
+            product_id = max(product_ids) + 1 if product_ids else 1
+
+            db[str(product_id)] = {
+                "id": product_id,
+                "name": name,
+                "price": price,
+                "category": category,
+                "description": description,
+                "image": image_url
+            }
+            log_admin_action(f"Created product: {name}")
+            flash("Product created successfully.", "success")
+
+    return render_template("create_product.html")
+
+>>>>>>> Stashed changes
 # ---------------- ADMIN CHANGELOG ----------------
 
 @app.route('/admin/changelog')
