@@ -10,38 +10,28 @@
         border-radius: 10px;
     }
 </style>
+
 <!-- Bootstrap Carousel -->
 <div id="demo" class="carousel slide mb-5" data-bs-ride="carousel">
+    {% if carousel_items %}
     <!-- Indicators -->
     <div class="carousel-indicators">
-        <button type="button" data-bs-target="#demo" data-bs-slide-to="0" class="active"></button>
-        <button type="button" data-bs-target="#demo" data-bs-slide-to="1"></button>
-        <button type="button" data-bs-target="#demo" data-bs-slide-to="2"></button>
+        {% for item in carousel_items %}
+        <button type="button" data-bs-target="#demo" data-bs-slide-to="{{ loop.index0 }}" class="{% if loop.first %}active{% endif %}"></button>
+        {% endfor %}
     </div>
 
     <!-- Carousel Items -->
     <div class="carousel-inner">
-        <div class="carousel-item active">
-            <img src="/static/Home Pic 1.jpeg" class="d-block w-100" style="height: 700px; object-fit: cover;" alt="Home 1">
+        {% for item in carousel_items %}
+        <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <img src="{{ url_for('static', filename=item.image) }}" class="d-block w-100" style="height: 700px; object-fit: cover;" alt="{{ item.title }}">
             <div class="carousel-caption p-3 rounded">
-                <h3 class="text-white">WELCOME TO RELAPSE</h3>
-                <p class="text-light">Recycled and Environmentally Friendly Clothes</p>
+                <h3 class="text-white">{{ item.title }}</h3>
+                <p class="text-light">{{ item.caption }}</p>
             </div>
         </div>
-        <div class="carousel-item">
-            <img src="/static/Home Pic 2.jpeg" class="d-block w-100" style="height: 700px; object-fit: cover;" alt="Home 2">
-            <div class="carousel-caption p-3 rounded">
-                <h3 class="text-white">WELCOME TO RELAPSE</h3>
-                <p class="text-light">Recycled and Environmentally Friendly Clothes</p>
-            </div>
-        </div>
-        <div class="carousel-item">
-            <img src="/static/Home Pic 3.jpeg" class="d-block w-100" style="height: 700px; object-fit: cover;" alt="Home 3">
-            <div class="carousel-caption p-3 rounded">
-                <h3 class="text-white">WELCOME TO RELAPSE</h3>
-                <p class="text-light">Recycled and Environmentally Friendly Clothes</p>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 
     <!-- Controls -->
@@ -51,6 +41,9 @@
     <button class="carousel-control-next" type="button" data-bs-target="#demo" data-bs-slide="next">
         <span class="carousel-control-next-icon"></span>
     </button>
+    {% else %}
+    <p class="text-center">No carousel items available.</p>
+    {% endif %}
 </div>
 
 <!-- Featured Products Section -->
@@ -60,7 +53,7 @@
         {% for product in products %}
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex justify-content-center">
             <div class="card shadow-lg border-0 ani" style="width: 270px; height: 420px;">
-                <img src="{{ url_for('static', filename=product['image']) }}" class="card-img-top img-fluid" style="height: 180px; object-fit: cover;" alt="{{ product['name'] }}">
+                <img src="{{ url_for('static', filename=product.image) }}" class="card-img-top img-fluid" style="height: 180px; object-fit: cover;" alt="{{ product.name }}">
                 <div class="card-body text-center d-flex flex-column">
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text fw-bold">${{ "%.2f"|format(product.price) }}</p>

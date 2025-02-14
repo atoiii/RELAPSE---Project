@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Add Carousel Item</h2>
+    
+    <form action="{{ url_for('add_carousel') }}" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="caption" class="form-label">Caption</label>
+            <textarea class="form-control" id="caption" name="caption" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="image" class="form-label">Upload Image</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Carousel Item</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Edit Carousel Item</h2>
+    
+    <form action="{{ url_for('edit_carousel', item_id=item_id) }}" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ item.title }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="caption" class="form-label">Caption</label>
+            <textarea class="form-control" id="caption" name="caption" required>{{ item.caption }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Current Image</label><br>
+            <img src="{{ url_for('static', filename=item.image) }}" class="img-fluid" style="max-height: 200px;">
+        </div>
+
+        <div class="mb-3">
+            <label for="image" class="form-label">Upload New Image (Optional)</label>
+            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+        </div>
+
+        <button type="submit" class="btn btn-success">Save Changes</button>
+        <a href="{{ url_for('view_carousel') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

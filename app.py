@@ -16,13 +16,20 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript from accessin
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Prevent cross-site request issues
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # For "Remember Me"
+UPLOAD_FOLDER = "static/"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
-@app.route('/')
+@app.route("/")
 def home():
+    with shelve.open("carousel.db") as db:
+        carousel_items = list(db.values())  # Fetch all carousel items
+
     with shelve.open("products.db") as db:
-        products = list(db.values())  # This will get all products from the db
-    return render_template('home.html', products=products)
+        products = list(db.values())  # Fetch all products
+
+    return render_template("home.html", products=products, carousel_items=carousel_items)
+
 
 
 
@@ -420,6 +427,126 @@ def super_admin_dashboard():
         return redirect(url_for("login"))
 
     return render_template("super_admin_dashboard.html")
+
+
+@app.route("/add_carousel", methods=["GET", "POST"])
+def add_carousel():
+    if session.get("role") not in ["admin", "superadmin"]:
+        flash("Access denied. Admins only.", "danger")
+        return redirect(url_for("home"))
+
+    if request.method == "POST":
+        title = request.form["title"]
+        caption = request.form["caption"]
+        image = request.files["image"]
+
+        if not title or not caption or not image:
+            flash("All fields are required!", "danger")
+            return redirect(url_for("add_carousel"))
+
+        # Save the image to the static folder
+        image_filename = os.path.join(app.config["UPLOAD_FOLDER"], image.filename)
+        image.save(image_filename)
+
+        # Save data in carousel.db with a simple, unique ID
+        with shelve.open("carousel.db", writeback=True) as db:
+            if db:
+                new_id = max(map(int, db.keys())) + 1  # Get highest existing ID and increment
+            else:
+                new_id = 1  # Start from ID 1 if empty
+
+            db[str(new_id)] = {
+                "id": new_id,  # Store ID explicitly
+                "image": f"uploads/{image.filename}",  # Path relative to /static
+                "title": title,
+                "caption": caption,
+            }
+
+        flash("Carousel item added successfully!", "success")
+        return redirect(url_for("view_carousel"))
+
+    return render_template("add_carousel.html")
+
+
+@app.route("/view_carousel")
+def view_carousel():
+    if session.get("role") not in ["admin", "superadmin"]:
+        flash("Access denied. Admins only.", "danger")
+        return redirect(url_for("home"))
+
+    with shelve.open("carousel.db") as db:
+        carousel_items = list(db.values())
+
+    return render_template("view_carousel.html", carousel_items=carousel_items)
+
+
+@app.route("/edit_carousel/<item_id>", methods=["GET", "POST"])
+def edit_carousel(item_id):
+    if session.get("role") not in ["admin", "superadmin"]:
+        flash("Access denied. Admins only.", "danger")
+        return redirect(url_for("home"))
+
+    with shelve.open("carousel.db", writeback=True) as db:
+        if item_id not in db:
+            flash("Carousel item not found.", "danger")
+            return redirect(url_for("view_carousel"))
+
+        item = db[item_id]
+
+        if request.method == "POST":
+            title = request.form["title"]
+            caption = request.form["caption"]
+            image = request.files["image"]
+
+            if not title or not caption:
+                flash("Title and caption are required!", "danger")
+                return redirect(url_for("edit_carousel", item_id=item_id))
+
+            # If a new image is uploaded, replace the old one
+            if image:
+                old_image_path = os.path.join("static", item["image"])
+
+                # Delete the old image if it exists
+                if os.path.exists(old_image_path):
+                    os.remove(old_image_path)
+
+                image_filename = os.path.join(app.config["UPLOAD_FOLDER"], image.filename)
+                image.save(image_filename)
+                item["image"] = f"uploads/{image.filename}"  # Update image path
+
+            item["title"] = title
+            item["caption"] = caption
+            db[item_id] = item  # Save updated details
+
+            flash("Carousel item updated successfully!", "success")
+            return redirect(url_for("view_carousel"))
+
+    return render_template("edit_carousel.html", item=item, item_id=item_id)
+
+
+@app.route("/delete_carousel/<item_id>", methods=["POST"])
+def delete_carousel(item_id):
+    if session.get("role") not in ["admin", "superadmin"]:
+        flash("Access denied. Admins only.", "danger")
+        return redirect(url_for("home"))
+
+    with shelve.open("carousel.db", writeback=True) as db:
+        if item_id in db:
+            image_path = os.path.join("static", db[item_id]["image"])
+
+            # Remove file if it exists
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
+            del db[item_id]  # Remove from database
+
+            flash("Carousel item deleted successfully!", "success")
+        else:
+            flash("Carousel item not found.", "danger")
+
+    return redirect(url_for("view_carousel"))
+
+
 
 @app.route('/admin/create_admin', methods=["GET", "POST"])
 def create_admin():
