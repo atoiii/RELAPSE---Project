@@ -8,14 +8,16 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
         html, body {
-            height: 100%;
-            margin: 0;
+             overflow-x: hidden;
+             overflow-y: auto;
         }
+
         .content {
             min-height: 100%;
             display: flex;
             flex-direction: column;
         }
+
         .footer {
             background-color: black;
             color: white;
@@ -25,25 +27,79 @@
             bottom: 0;
             width: 100%;
         }
+
         .main {
             flex: 1;
         }
+
         .navbar {
-            justify-content: center;
-        }
-        .navbar-nav {
+            height: 100px;
             display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 30px;
+            background-color: black !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .navbar .container-fluid {
+            display: flex;
+            align-items: center;
             justify-content: space-between;
             width: 100%;
         }
-        .nav-item {
-            padding: 0 15px;
-        }
+
         .navbar-brand {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
         }
+
+        .navbar-brand img {
+            height: 75px;
+            width: auto;
+        }
+
+        .navbar-nav {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .nav-item {
+            padding: 0 50px;
+        }
+
+        .nav-link {
+            color: white !important;
+            font-size: 16px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            color: red !important;
+        }
+
+        .nav-about {
+            margin-left: 650px;
+            padding-right: 20px;
+            margin-left: 500px
+        }
+
+        .nav-icons {
+            display: flex;
+            align-items: right;
+        }
+        .nav-logo {
+            padding-left: 20px;
+
     </style>
 </head>
 <body>
@@ -58,6 +114,7 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
+
 <div class="content">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-black">
@@ -81,13 +138,15 @@
                     </li>
                     <li class="nav-item"><a href="/sales" class="nav-link">Sales</a></li>
                     <li class="nav-item"><a href="/membership" class="nav-link">Membership</a></li>
-                    <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
-                    <li class="nav-item"><a href="/cart" class="nav-link"><img src="/static/cart_icon.jpg" alt="Cart"
-                                                                               style="height: 30px; width: 30px;"></a>
-                    </li>
-                    <li class="nav-item"><a href="/login" class="nav-link"><img src="/static/login_icon.jpg" alt="Login"
-                                                                                style="height: 30px; width: 30px;"></a>
-                    </li>
+
+                    <!-- Push "About" link to the right -->
+                    <li class="nav-about"><a href="/about" class="nav-link">About</a></li>
+
+                    <!-- Icons all the way to the right -->
+                    <div class="nav-icons">
+                        <li class="nav-logo"><a href="/cart" class="nav-link"><img src="/static/cart_icon.jpg" alt="Cart" style="height: 30px; width: 30px;"></a></li>
+                        <li class="nav-logo"><a href="/login" class="nav-link"><img src="/static/login_icon.jpg" alt="Login" style="height: 30px; width: 30px;"></a></li>
+                    </div>
                 </ul>
             </div>
         </div>
