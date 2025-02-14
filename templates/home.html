@@ -135,7 +135,7 @@
                     <div class="mt-auto w-100">
                         <form action="/cart" method="POST">
                             <input type="hidden" name="product_id" value="{{ product.id }}">
-                            <button type="submit" class="btn btn-primary w-100">Add to Cart</button>
+                            <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-primary">Add to Cart</a>
                         </form>
                     </div>
                 </div>

@@ -64,16 +64,23 @@ def login():
             user = db.get(email)
             if user and user["password"] == password:
                 session["user"] = user
+                session["role"] = user.get("role")
                 session["cart"] = user.get("cart", [])
-
                 # Set session persistence based on "Remember Me"
                 if remember:
                     session.permanent = True
                 else:
                     session.permanent = False  # Temporary session
-
-                flash(f"Welcome back, {user['first_name']}!", "success")
-                return redirect(url_for("profile"))
+                    # If Super Admin logs in, redirect to special Super Admin panel
+                if user.get("role") == "superadmin":
+                    flash("Super Admin login successful!", "success")
+                    return redirect(url_for("super_admin_dashboard"))
+                elif user.get("role") == "admin":
+                    flash("Admin login successful!", "success")
+                    return redirect(url_for("admin_dashboard"))
+                else:
+                    flash(f"Welcome back, {user['first_name']}!", "success")
+                    return redirect(url_for("profile"))
             else:
                 flash("Invalid email or password.", "danger")
 
@@ -97,6 +104,7 @@ def signup():
         email = request.form["email"]
         password = request.form["password"]
         confirm_password = request.form["confirm_password"]
+        role = "user"
 
         if password != confirm_password:
             flash("Passwords do not match!", "danger")
@@ -110,13 +118,14 @@ def signup():
             if email in db:
                 flash("Account already exists!", "danger")
             else:
-                db[email] = {
+                db["email"] = {
                     "first_name": first_name,
                     "last_name": last_name,
                     "email": email,
                     "password": password,
                     "membership_status": "Regular",
-                    "cart": []
+                    "cart": [],
+                    "role": role
                 }
                 flash("Account created successfully!", "success")
                 return redirect(url_for("login"))
@@ -332,6 +341,8 @@ def reset_password():
 @app.route('/logout')
 def logout():
     if "user" in session:
+        if "user" not in session or "email" not in session["user"]:
+            return "Error: No user logged in"
         user_email = session["user"]["email"]  # Get the user's email
         with shelve.open("users.db", writeback=True) as db:
             if user_email in db:
@@ -339,6 +350,7 @@ def logout():
                 db[user_email]["cart"] = session.get("cart", [])
     session.pop("user", None)  # Remove user from session
     session.pop("cart", None)  # Remove cart from session
+    session.pop("role", None)
     resp = make_response(redirect(url_for("home")))
     resp.delete_cookie(app.config['SESSION_COOKIE_NAME'])  # Clear the session cookie
     flash("Logged out successfully.", "success")
@@ -380,6 +392,8 @@ def delete_account():
         return redirect(url_for("login"))
 
     if request.method == "POST":
+        if "user" not in session or "email" not in session["user"]:
+            return "Error: No user logged in"
         user_email = session["user"]["email"]  # Get the logged-in user's email
 
         # Open the database and delete the user's account
@@ -402,7 +416,7 @@ def super_admin_dashboard():
     #dashboard Admin
     if "admin" not in session or session["admin"].get("role") != "superadmin":
         flash("Unauthorized access.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     return render_template("super_admin_dashboard.html")
 
@@ -427,40 +441,12 @@ def create_admin():
     return render_template("create_admin.html")
 
 
-@app.route('/admin_login', methods=["GET", "POST"])
-def admin_login():
-    #allow admin to login
-    if "admin" in session:
-        return redirect(url_for("admin_dashboard"))
-
-    if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-
-        with shelve.open("admins.db") as db:
-            admin = db.get(username)
-            if admin and admin["password"] == password:
-                session["admin"] = admin
-
-                # If Super Admin logs in, redirect to special Super Admin panel
-                if admin.get("role") == "superadmin":
-                    flash("Super Admin login successful!", "success")
-                    return redirect(url_for("super_admin_dashboard"))
-
-                flash("Admin login successful!", "success")
-                return redirect(url_for("admin_dashboard"))
-            else:
-                flash("Invalid admin credentials.", "danger")
-
-    return render_template("admin_login.html")
-
-
 # Admin Dashboard
 @app.route('/admin_dashboard')
 def admin_dashboard():
     if "admin" not in session:
         flash("Please log in as an admin to access the dashboard.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     is_super_admin = session["admin"]["role"] == "super_admin"
 
@@ -478,21 +464,13 @@ def admin_dashboard():
     else:
         return render_template("admin_dashboard.html", total_users=total_users, total_products=total_products, total_sales=total_sales)
 
-
-# Admin Logout
-@app.route('/admin_logout')
-def admin_logout():
-    session.pop("admin", None)
-    flash("Admin logged out successfully.", "success")
-    return redirect(url_for("admin_login"))
-
 # ---------------- USER MANAGEMENT ----------------
 
 @app.route('/admin/manage_users')
 def manage_users():
     if "admin" not in session:
         flash("Please log in as an admin.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     with shelve.open("users.db") as db:
         users = list(db.values())
@@ -503,20 +481,21 @@ def manage_users():
 def create_customer():
     if "admin" not in session:
         flash("Please log in as an admin.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     if request.method == "POST":
         email = request.form["email"]
         first_name = request.form["first_name"]
         last_name = request.form["last_name"]
         password = request.form["password"]
+        role = "user"
 
         # Open and write to the users.db
         with shelve.open("users.db", writeback=True) as db:
             if email in db:
                 flash("A user with this email already exists.", "danger")
             else:
-                db[email] = {"email": email, "first_name": first_name, "last_name": last_name, "password": password, "membership_status": "Regular", "cart": []}
+                db[email] = {"email": email, "first_name": first_name, "last_name": last_name, "password": password, "membership_status": "Regular", "cart": [], "role": role}
                 log_admin_action(f"Created user: {email}")
                 flash("User created successfully.", "success")
 
@@ -527,7 +506,7 @@ def create_customer():
 def modify_customer(email):
     if "admin" not in session:
         flash("Please log in as an admin to access this page.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     with shelve.open("users.db", writeback=True) as db:
         customer = db.get(email)
@@ -550,7 +529,7 @@ def modify_customer(email):
 def delete_customer(email):
     if "admin" not in session:
         flash("Please log in as an admin.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     with shelve.open("users.db", writeback=True) as db:
         if email in db:
@@ -566,7 +545,7 @@ def delete_customer(email):
 def manage_products():
     if "admin" not in session:
         flash("Please log in as an admin.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     with shelve.open("products.db") as db:
         products = list(db.values())
@@ -578,7 +557,7 @@ def manage_products():
 def manage_promo_codes():
     if "admin" not in session:
         flash("Please log in as an admin to access this page.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     return render_template("manage_promo_codes.html")
 
@@ -588,7 +567,7 @@ def manage_promo_codes():
 def create_product():
     if "admin" not in session:
         flash("Please log in as an admin.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     if request.method == "POST":
         name = request.form["name"]
@@ -628,7 +607,7 @@ def create_product():
 def admin_changelog():
     if "admin" not in session:
         flash("Please log in as an admin.", "danger")
-        return redirect(url_for("admin_login"))
+        return redirect(url_for("login"))
 
     with shelve.open("admin_logs.db") as db:
         logs = list(db.values())
