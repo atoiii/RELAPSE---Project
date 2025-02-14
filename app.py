@@ -55,9 +55,9 @@ def home():
     return render_template("home.html", products=PRODUCTS)
 
 
-@app.route('/new')
-def new():
-    return render_template("new.html")
+@app.route('/membership')
+def membership():
+    return render_template("membership.html")
 
 
 @app.route('/sales')
