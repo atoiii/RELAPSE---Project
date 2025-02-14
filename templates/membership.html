@@ -1,13 +1,163 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block content %}
-<style>
-    .new-content {
-        text-align: center;
-        padding: 20px;
-    }
-</style>
-<div class="new-content">
-    <h1>Membership</h1>
-    <p>Be a member to get exclusive discounts</p>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Membership Options</title>
+   <style>
+       /* General Styles */
+       body {
+           font-family: Arial, sans-serif;
+           margin: 0;
+           padding: 0;
+           text-align: center;
+           background: url('static/marble_background.jpg') no-repeat center center fixed;
+           background-size: cover;
+           color: black;
+       }
+
+
+       /* Membership Section */
+       .membership-container {
+           max-width: 900px;
+           margin: 50px auto;
+           padding: 20px;
+       }
+
+
+       h1 {
+           color: white;
+           font-size: 36px;
+           font-weight: bold;
+           margin-bottom: 10px;
+       }
+
+
+       p {
+           color: white;
+           font-size: 16px;
+           margin-bottom: 30px;
+       }
+
+
+       /* Membership Cards */
+       .membership-options {
+           display: flex;
+           justify-content: center;
+           gap: 20px;
+       }
+
+
+       .membership-card {
+           background: white;
+           padding: 20px;
+           width: 250px;
+           border: 2px solid black;  /* Black border */
+           border-radius: 10px;
+           box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+           transition: transform 0.3s ease-in-out;
+       }
+
+
+       .membership-card:hover {
+           transform: scale(1.05);
+       }
+
+
+       .membership-card h2 {
+           font-size: 22px;
+           margin-bottom: 10px;
+       }
+
+
+       .membership-card ul {
+           list-style: none;
+           padding: 0;
+       }
+
+
+       .membership-card ul li {
+           margin: 5px 0;
+       }
+
+
+       /* Buttons */
+       .membership-card button {
+           background: black;
+           color: white;
+           border: none;
+           padding: 10px 15px;
+           font-size: 14px;
+           cursor: pointer;
+           border-radius: 5px;
+           margin-top: 15px;
+           transition: 0.3s;
+       }
+
+
+       .membership-card button:hover {
+           background: gray;
+       }
+   </style>
+</head>
+<body>
+
+
+   <div class="membership-container">
+       <h1>Membership Options</h1>
+       <p>Choose a membership and enjoy exclusive benefits.</p>
+
+
+       <div class="membership-options">
+           <!-- Bronze Membership -->
+           <div class="membership-card">
+               <h2>Bronze</h2>
+               <ul>
+                   <li>5% off all purchases</li>
+                   <li>Monthly Newsletter</li>
+                   <li>Community Forum</li>
+               </ul>
+               <button onclick="redirectToPayment('bronze')">Choose Bronze</button>
+           </div>
+
+
+           <!-- Silver Membership -->
+           <div class="membership-card">
+               <h2>Silver</h2>
+               <ul>
+                   <li>10% off all purchases</li>
+                   <li>Free shipping</li>
+                   <li>Discounts on Events</li>
+               </ul>
+               <button onclick="redirectToPayment('silver')">Choose Silver</button>
+           </div>
+
+
+           <!-- Gold Membership -->
+           <div class="membership-card">
+               <h2>Gold</h2>
+               <ul>
+                   <li>20% off all purchases</li>
+                   <li>Priority customer service</li>
+                   <li>Members-only items</li>
+               </ul>
+               <button onclick="redirectToPayment('gold')">Choose Gold</button>
+           </div>
+       </div>
+   </div>
+
+
+   <script>
+       function redirectToPayment(membershipType) {
+           window.location.href = '/membership_payment?membership=' + membershipType;
+       }
+   </script>
+
+
+</body>
+</html>
+
+
 {% endblock %}
