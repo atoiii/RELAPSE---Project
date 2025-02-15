@@ -297,9 +297,13 @@ def checkout():
         session["cart"] = []  # Clear cart after payment
         session.modified = True
         flash("Payment successful! Your order has been placed.", "success")
-        return redirect(url_for("home"))
+        return redirect(url_for("CONFIRMATION"))
 
     return render_template("checkout.html")
+
+@app.route('/CONFIRMATION')
+def CONFIRMATION():
+    return render_template('CONFIRMATION.html')
 
 
 @app.route('/forgot_password', methods=["GET", "POST"])
