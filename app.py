@@ -154,78 +154,43 @@ def cart():
     if "cart" not in session:
         session["cart"] = []
 
+    total_price = 0  # Initialize total price
+
     if request.method == "POST":
         with shelve.open("users.db", writeback=True) as db:
             user = session["user"]
             email = user["email"]
 
+            # Handle product quantity update
             if "product_id" in request.form:
-                product_id = int(request.form.get("product_id"))
-                size = request.form.get("size")
-                quantity = int(request.form.get("quantity"))
-                product = next((p for p in list(shelve.open("products.db").values()) if p["id"] == product_id), None)
+                product_id = int(request.form["product_id"])
+                size = request.form["size"]
+                new_quantity = int(request.form["quantity"])
 
-                if product:
+                # Ensure the quantity is at least 1
+                if new_quantity >= 1:
                     for item in session["cart"]:
                         if item["id"] == product_id and item["size"] == size:
-                            item["quantity"] += quantity
+                            item["quantity"] = new_quantity
                             break
-                    else:
-                        session["cart"].append({
-                            "id": product_id,
-                            "name": product["name"],
-                            "price": product["price"],
-                            "size": size,
-                            "quantity": quantity
-                        })
 
-                    db[email]["cart"] = session["cart"]
-                    flash(f"{quantity} {size.upper()} {product['name']} added to cart!", "success")
-
-            elif "remove_product_id" in request.form:
+            # Handle product removal
+            if "remove_product_id" in request.form:
                 product_id = int(request.form["remove_product_id"])
                 size = request.form["size"]
-
-                session["cart"] = [item for item in session["cart"] if
-                                   not (item["id"] == product_id and item["size"] == size)]
-
-                db[email]["cart"] = session["cart"]
+                session["cart"] = [item for item in session["cart"] if not (item["id"] == product_id and item["size"] == size)]
                 flash("Item removed from cart.", "success")
+
+            db[email]["cart"] = session["cart"]
 
         session.modified = True
         return redirect(url_for("cart"))
-    return render_template("cart.html", cart=session["cart"])
 
+    # Calculate total price
+    for item in session["cart"]:
+        total_price += item["price"] * item["quantity"]
 
-@app.route("/update-cart", methods=["POST"])
-def update_cart():
-    if "user" not in session:
-        return jsonify({"success": False, "message": "User not logged in"}), 401
-
-    user = session["user"]
-    email = user["email"]
-
-    data = request.json
-    product_id = int(data.get("product_id"))
-    new_quantity = int(data.get("quantity"))
-    new_size = data.get("size")
-
-    if "cart" not in session:
-        session["cart"] = []
-
-    with shelve.open("users.db", writeback=True) as db:
-        cart = session["cart"]
-        for item in cart:
-            if item["id"] == product_id and item["size"] == new_size:  # ✅ Fix: Match size too
-                item["quantity"] = new_quantity
-                break
-
-        session["cart"] = cart
-        db[email]["cart"] = cart
-        session.modified = True
-
-    return jsonify({"success": True, "message": "Cart updated successfully", "cart": session["cart"]})
-
+    return render_template("cart.html", cart=session["cart"], total_price=total_price)  # Pass total price to template
 
 @app.route('/add_to_cart/<int:product_id>', methods=["GET", "POST"])
 def add_to_cart(product_id):
@@ -263,27 +228,6 @@ def add_to_cart(product_id):
         return redirect(url_for("cart"))
 
     return render_template("add_to_cart.html", product=product)
-
-
-@app.route("/remove-from-cart", methods=["POST"])
-def remove_from_cart():
-    if "user" not in session:
-        return jsonify({"success": False, "message": "User not logged in"}), 401
-
-    user = session["user"]
-    email = user["email"]
-
-    data = request.json
-    product_id = int(data.get("product_id"))
-    size = data.get("size")
-
-    with shelve.open("users.db", writeback=True) as db:
-        session["cart"] = [item for item in session["cart"] if not (item["id"] == product_id and item["size"] == size)]
-        db[email]["cart"] = session["cart"]
-        session.modified = True
-
-    return jsonify({"success": True, "message": "Item removed successfully"})
-
 
 @app.route('/delivery', methods=["GET", "POST"])
 def delivery():
