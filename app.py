@@ -419,7 +419,7 @@ def delete_account():
 @app.route('/super_admin_dashboard')
 def super_admin_dashboard():
     #dashboard Admin
-    if session['role'] != 'admin' and session['role'] != 'superadmin':
+    if session.get('role') != 'superadmin':
         flash("Unauthorized access.", "danger")
         return redirect(url_for("login"))
 
@@ -442,7 +442,7 @@ def add_carousel():
             return redirect(url_for("add_carousel"))
 
         # Save the image to the static folder
-        image_filename = os.path.join(app.config["UPLOAD_FOLDER"], image.filename)
+        image_filename = os.path.join("static", image.filename)
         image.save(image_filename)
 
         # Save data in carousel.db with a simple, unique ID
@@ -454,7 +454,7 @@ def add_carousel():
 
             db[str(new_id)] = {
                 "id": new_id,  # Store ID explicitly
-                "image": f"uploads/{image.filename}",  # Path relative to /static
+                "image": image.filename,  # Path relative to /static
                 "title": title,
                 "caption": caption,
             }
@@ -509,7 +509,7 @@ def edit_carousel(item_id):
 
                 image_filename = os.path.join(app.config["UPLOAD_FOLDER"], image.filename)
                 image.save(image_filename)
-                item["image"] = f"uploads/{image.filename}"  # Update image path
+                item["image"] = image.filename  # Update image path
 
             item["title"] = title
             item["caption"] = caption
@@ -576,7 +576,7 @@ def create_admin():
 # Admin Dashboard
 @app.route('/admin_dashboard')
 def admin_dashboard():
-    if session['role'] != 'admin' and session['role'] != 'superadmin':
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin to access the dashboard.", "danger")
         return redirect(url_for("login"))
 
@@ -596,7 +596,7 @@ def admin_dashboard():
 
 @app.route('/admin/manage_users')
 def manage_users():
-    if session['role'] != 'admin' and session['role'] != 'superadmin':
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -607,7 +607,7 @@ def manage_users():
 
 @app.route('/admin/create_user', methods=["GET", "POST"])
 def create_customer():
-    if session['role'] != 'admin' and session['role'] != 'superadmin':
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -655,7 +655,7 @@ def modify_customer(email):
 
 @app.route('/admin/delete_user/<email>', methods=["POST"])
 def delete_customer(email):
-    if "admin" not in session:
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -671,7 +671,7 @@ def delete_customer(email):
 
 @app.route('/admin/manage_products')
 def manage_products():
-    if session['role'] != 'admin' and session['role'] != 'superadmin':
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -683,7 +683,7 @@ def manage_products():
 
 @app.route('/admin/manage_promo_codes')
 def manage_promo_codes():
-    if session['role'] != 'admin' and session['role'] != 'superadmin':
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin to access this page.", "danger")
         return redirect(url_for("login"))
 
@@ -693,7 +693,7 @@ def manage_promo_codes():
 
 @app.route('/admin/create_product', methods=["GET", "POST"])
 def create_product():
-    if session['role'] != 'admin' and session['role'] != 'superadmin':
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
@@ -733,7 +733,7 @@ def create_product():
 
 @app.route('/admin/changelog')
 def admin_changelog():
-    if session['role'] != 'admin' and session['role'] != 'superadmin':
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
