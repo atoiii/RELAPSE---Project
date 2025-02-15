@@ -72,23 +72,20 @@ def login():
             if user and user["password"] == password:
                 session["user"] = user
                 session["role"] = user.get("role")
-                print(session['role'])
                 session["cart"] = user.get("cart", [])
                 # Set session persistence based on "Remember Me"
-                # if remember:
-                #     session.permanent = True
-                # else:
-                #     session.permanent = False  # Temporary session
+                if remember:
+                    session.permanent = True
+                else:
+                    session.permanent = False  # Temporary session
                     # If Super Admin logs in, redirect to special Super Admin panel
                 if session['role'] == "superadmin":
                     flash("Super Admin login successful!", "success")
-                    return redirect(url_for("super_admin_dashboard"))
                 if session['role'] == "admin":
                     flash("Admin login successful!", "success")
-                    return redirect(url_for("admin_dashboard"))
                 if session['role'] == 'user':
                     flash(f"Welcome back, {user['first_name']}!", "success")
-                    return redirect(url_for("profile"))
+                return redirect(url_for("profile"))
             else:
                 flash("Invalid email or password.", "danger")
 
@@ -126,7 +123,7 @@ def signup():
             if email in db:
                 flash("Account already exists!", "danger")
             else:
-                db["email"] = {
+                db[email] = {
                     "first_name": first_name,
                     "last_name": last_name,
                     "email": email,
@@ -366,8 +363,8 @@ def logout():
 
 
 def send_password_reset_email(to_email):
-    sender_email = "your_email@example.com"  # Replace with your email
-    sender_password = "your_email_password"  # Replace with your email password
+    sender_email = "relapseshopco@gmail.com"  # Replace with your email
+    sender_password = "swag zjmu bact zfbh"  # Replace with your email password
     subject = "Password Reset Request"
     body = f"""
     Hi,
@@ -550,19 +547,26 @@ def delete_carousel(item_id):
 
 @app.route('/admin/create_admin', methods=["GET", "POST"])
 def create_admin():
-    if session['role'] != 'superadmin':
+    if 'role' not in session:
+        flash("You must be logged in to access this page.", "danger")
+        return redirect(url_for("login"))
+    elif session.get('role') != 'superadmin':
         flash("Only the Super Admin can create new admins.", "danger")
         return redirect(url_for("super_admin_dashboard"))
 
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        email = request.form.get("email")
+        password = request.form.get("password")
 
-        with shelve.open("admins.db", writeback=True) as db:
-            if username in db:
+        if not email or not password:
+            flash("Username and password cannot be empty.", "danger")
+            return redirect(url_for("create_admin"))
+
+        with shelve.open("users.db", writeback=True) as db:
+            if db.get(email, {}).get('role') in ['admin', 'superadmin']:
                 flash("Admin username already exists.", "danger")
             else:
-                db[username] = {"username": username, "password": password, "role": "admin"}
+                db[email] = {"email": email, "password": password, "role": "admin"}
                 flash("New admin created successfully!", "success")
                 return redirect(url_for("super_admin_dashboard"))
 
@@ -628,7 +632,7 @@ def create_customer():
 
 @app.route('/admin/modify_customer/<email>', methods=["GET", "POST"])
 def modify_customer(email):
-    if "admin" not in session:
+    if session.get('role') not in ['admin', 'superadmin']:
         flash("Please log in as an admin to access this page.", "danger")
         return redirect(url_for("login"))
 

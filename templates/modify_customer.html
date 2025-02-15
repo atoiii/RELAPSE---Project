@@ -18,7 +18,7 @@
         <div class="mb-3">
             <label class="form-label">Membership Status</label>
             <select name="membership_status" class="form-control">
-                <option value="Regular" {% if customer.membership_status == "Regular" %}selected{% endif %}> Regular</option>
+                <option value="Regular" {% if customer.membership_status == "Regular" %}selected{% endif %}>Regular</option>
                 <option value="Premium" {% if customer.membership_status == "Premium" %}selected{% endif %}>Premium</option>
             </select>
         </div>

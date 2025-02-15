@@ -1,11 +1,7 @@
 import shelve
 
 def inspect_db():
-<<<<<<< Updated upstream
     db_path = "users.db"  # Path to your shelve database
-=======
-    db_path = "admins.db"  # Path to your shelve database
->>>>>>> Stashed changes
     try:
         # Open the database
         with shelve.open(db_path) as db:
