@@ -36,16 +36,25 @@
             <input type="file" id="image" name="image" class="form-control" accept="image/*" required>
         </div>
         <div class="mb-3">
-            <label class="form-label">On Sale?</label>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" id="sales_yes" name="sales" value="yes">
-                <label class="form-check-label" for="sales_yes">Yes</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" id="sales_no" name="sales" value="no" checked>
-                <label class="form-check-label" for="sales_no">No</label>
-            </div>
+            <label for="sales" class="form-label">On Sale?</label>
+            <select id="sales" name="sales" class="form-control" onchange="toggleDiscountInput()">
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+            </select>
         </div>
+
+        <div class="mb-3" id="discount-container" style="display: none;">
+            <label for="discount" class="form-label">Discount Percentage (Max 90%)</label>
+            <input type="number" id="discount" name="discount" class="form-control" min="0" max="90" value="15">
+        </div>
+
+        <script>
+            function toggleDiscountInput() {
+                var sales = document.getElementById("sales").value;
+                var discountContainer = document.getElementById("discount-container");
+                discountContainer.style.display = (sales === "yes") ? "block" : "none";
+            }
+        </script>
         <button type="submit" class="btn btn-success w-100">Create Product</button>
     </form>
     <div class="text-center mt-4">

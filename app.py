@@ -51,10 +51,17 @@ def about():
 
 @app.route('/clothing/<category>')
 def clothing(category):
+    category = category.lower()  # Normalize category to lowercase
+
     with shelve.open("products.db") as db:
-        products = list(db.values())  # Get all products from DB
-    filtered_products = [product for product in products if product["category"] == category]
-    return render_template("clothing.html", category=category, products=filtered_products)
+        products = [db[key] for key in db.keys() if key.isdigit()]
+
+    filtered_products = [product for product in products if product.get("category", "").lower() == category]
+
+    if not filtered_products:
+        flash(f"No products found in {category.capitalize()} category.", "info")
+
+    return render_template("clothing.html", category=category.capitalize(), products=filtered_products)
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -715,8 +722,14 @@ def create_product():
         description = request.form["description"]
         image = request.files["image"]
         is_on_sale = request.form.get("sales") == "yes"
+        discount_percentage = int(request.form["discount"]) if is_on_sale else 0
 
-        discounted_price = round(price * 0.85, 2) if is_on_sale else price
+        if discount_percentage < 0:
+            discount_percentage = 0
+        elif discount_percentage > 90:
+            discount_percentage = 90
+
+        discounted_price = round(price * (1 - discount_percentage / 100), 2) if is_on_sale else price
 
         if image and image.filename:  # Ensure a file was uploaded
             # **Save Image Directly to Static Folder**
@@ -737,10 +750,11 @@ def create_product():
                 "category": category,
                 "description": description,
                 "image": image_url,
-                "discounted_price": discounted_price,
+                "discounted_price": discounted_price if sales else None,
+                "discounted_percentage": discount_percentage if sales else 0,
                 "sales": is_on_sale,
             }
-            log_admin_action(f"Created product: {name}")
+            log_admin_action(f"Created product: {name} with discount {discount_percentage}%")
             flash("Product created successfully.", "success")
 
     return render_template("create_product.html")
@@ -767,7 +781,13 @@ def edit_product(product_id):
             image = request.files["image"]
             is_on_sale = request.form.get("sales") == "yes"
 
-            discounted_price = round(price * 0.85, 2) if sales else price
+            discount_percentage = float(request.form.get("discount", 0))
+            if discount_percentage < 0:
+                discount_percentage = 0
+            elif discount_percentage > 90:
+                discount_percentage = 90
+
+            discounted_price = round(price * (1 - discount_percentage / 100), 2) if sales else price
 
             # If a new image is uploaded, replace the old one
             if image and image.filename:
@@ -787,6 +807,7 @@ def edit_product(product_id):
             product["description"] = description
             product["image"] = image_url
             product["sales"] = is_on_sale
+            product["discount_percentage"] = discount_percentage if sales else 0
 
             db[str(product_id)] = product  # Save updated product to db
 

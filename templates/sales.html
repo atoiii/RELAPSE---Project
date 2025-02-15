@@ -22,7 +22,7 @@
             <div class="card shadow-lg border-0 ani position-relative" style="width: 270px; height: 390px;">
 
                 <!-- Sale Badge -->
-                <span class="sale-badge">Save 15%</span>
+                <span class="sale-badge">Save {{ product.discount_percentage }}%%</span>
 
                 <img src="{{ url_for('static', filename=product.image) }}" class="card-img-top img-fluid"
                      style="height: 220px; object-fit: cover; border-top-left-radius: 8px; border-top-right-radius: 8px;"
