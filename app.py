@@ -877,7 +877,7 @@ def add_delivery():
     else:
         flash('All fields are required to add a delivery!', 'danger')
 
-    return redirect(url_for('index'))
+    return redirect(url_for('delivery'))
 
 
 @app.route('/edit_delivery/<int:index>', methods=['GET', 'POST'])
@@ -932,6 +932,9 @@ def select_delivery(index):
 
     return redirect(url_for('index'))
 
+@app.route('/membership_payment')
+def membership_payment():
+    return render_template('membership_payment.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
