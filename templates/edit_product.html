@@ -9,15 +9,20 @@
         </div>
         <div class="mb-3">
             <label for="price" class="form-label">Price</label>
-            <input type="number" step="0.01" id="price" name="price" class="form-control" value="{{ product.price }}" required>
+            <input type="number" step="0.01" id="price" name="price" class="form-control" value="{{ product.price }}"
+                   required>
         </div>
         <div class="mb-3">
             <label for="category" class="form-label">Category</label>
             <select id="category" name="category" class="form-control" required>
-                <option value="shirts" {% if product.category == 'shirts' %}selected{% endif %}>Shirts</option>
-                <option value="pants" {% if product.category == 'pants' %}selected{% endif %}>Pants</option>
-                <option value="shorts" {% if product.category == 'shorts' %}selected{% endif %}>Shorts</option>
-                <option value="hoodies" {% if product.category == 'hoodies' %}selected{% endif %}>Hoodies</option>
+                <option value="shirts" {% if product.category==
+                'shirts' %}selected{% endif %}>Shirts</option>
+                <option value="pants" {% if product.category==
+                'pants' %}selected{% endif %}>Pants</option>
+                <option value="shorts" {% if product.category==
+                'shorts' %}selected{% endif %}>Shorts</option>
+                <option value="hoodies" {% if product.category==
+                'hoodies' %}selected{% endif %}>Hoodies</option>
             </select>
         </div>
         <div class="mb-3">
@@ -28,9 +33,20 @@
             <label for="image" class="form-label">Product Image (optional)</label>
             <input type="file" id="image" name="image" class="form-control" accept="image/*">
             {% if product.image %}
-                <div class="mt-2">
-                    <img src="{{ url_for('static', filename=product.image) }}" width="100" alt="Product Image">
+            <div class="mt-2">
+                <img src="{{ url_for('static', filename=product.image) }}" width="100" alt="Product Image">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">On Sale?</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="sales_yes" name="sales" value="yes">
+                    <label class="form-check-label" for="sales_yes">Yes</label>
                 </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="sales_no" name="sales" value="no" checked>
+                    <label class="form-check-label" for="sales_no">No</label>
+                </div>
+            </div>
             {% endif %}
         </div>
         <button type="submit" class="btn btn-success w-100">Update Product</button>

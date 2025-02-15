@@ -1,9 +1,9 @@
+import os
 import re
 import shelve
-import os
 import smtplib
-from datetime import timedelta
 from datetime import datetime
+from datetime import timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -31,8 +31,6 @@ def home():
     return render_template("home.html", products=products, carousel_items=carousel_items)
 
 
-
-
 @app.route('/membership')
 def membership():
     return render_template("membership.html")
@@ -40,7 +38,10 @@ def membership():
 
 @app.route('/sales')
 def sales():
-    return render_template("sales.html")
+    with shelve.open("products.db") as db:
+        products = [product for product in db.values() if product.get("sales")]  # Filter only sale products
+
+    return render_template("sales.html", products=products)
 
 
 @app.route('/about')
@@ -54,7 +55,6 @@ def clothing(category):
         products = list(db.values())  # Get all products from DB
     filtered_products = [product for product in products if product["category"] == category]
     return render_template("clothing.html", category=category, products=filtered_products)
-
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -189,6 +189,7 @@ def cart():
         return redirect(url_for("cart"))
     return render_template("cart.html", cart=session["cart"])
 
+
 @app.route("/update-cart", methods=["POST"])
 def update_cart():
     if "user" not in session:
@@ -217,6 +218,7 @@ def update_cart():
         session.modified = True
 
     return jsonify({"success": True, "message": "Cart updated successfully", "cart": session["cart"]})
+
 
 @app.route('/add_to_cart/<int:product_id>', methods=["GET", "POST"])
 def add_to_cart(product_id):
@@ -255,6 +257,7 @@ def add_to_cart(product_id):
 
     return render_template("add_to_cart.html", product=product)
 
+
 @app.route("/remove-from-cart", methods=["POST"])
 def remove_from_cart():
     if "user" not in session:
@@ -273,6 +276,7 @@ def remove_from_cart():
         session.modified = True
 
     return jsonify({"success": True, "message": "Item removed successfully"})
+
 
 @app.route('/delivery', methods=["GET", "POST"])
 def delivery():
@@ -300,6 +304,7 @@ def checkout():
         return redirect(url_for("CONFIRMATION"))
 
     return render_template("checkout.html")
+
 
 @app.route('/CONFIRMATION')
 def CONFIRMATION():
@@ -422,7 +427,7 @@ def delete_account():
 
 @app.route('/super_admin_dashboard')
 def super_admin_dashboard():
-    #dashboard Admin
+    # dashboard Admin
     if session.get('role') != 'superadmin':
         flash("Unauthorized access.", "danger")
         return redirect(url_for("login"))
@@ -548,7 +553,6 @@ def delete_carousel(item_id):
     return redirect(url_for("view_carousel"))
 
 
-
 @app.route('/admin/create_admin', methods=["GET", "POST"])
 def create_admin():
     if 'role' not in session:
@@ -584,7 +588,6 @@ def admin_dashboard():
         flash("Please log in as an admin to access the dashboard.", "danger")
         return redirect(url_for("login"))
 
-
     with shelve.open("users.db") as db:
         total_users = sum(1 for i in db if db.get(i, {}).get('role') not in ['admin', 'superadmin'])
 
@@ -594,7 +597,9 @@ def admin_dashboard():
     with shelve.open("sales.db") as db:
         total_sales = sum(db.values())
 
-    return render_template("admin_dashboard.html", total_users=total_users, total_products=total_products, total_sales=total_sales)
+    return render_template("admin_dashboard.html", total_users=total_users, total_products=total_products,
+                           total_sales=total_sales)
+
 
 # ---------------- USER MANAGEMENT ----------------
 
@@ -608,6 +613,7 @@ def manage_users():
         users = list(db.values())
 
     return render_template("manage_users.html", users=users)
+
 
 @app.route('/admin/create_user', methods=["GET", "POST"])
 def create_customer():
@@ -627,7 +633,8 @@ def create_customer():
             if email in db:
                 flash("A user with this email already exists.", "danger")
             else:
-                db[email] = {"email": email, "first_name": first_name, "last_name": last_name, "password": password, "membership_status": "Regular", "cart": [], "role": role}
+                db[email] = {"email": email, "first_name": first_name, "last_name": last_name, "password": password,
+                             "membership_status": "Regular", "cart": [], "role": role}
                 log_admin_action(f"Created user: {email}")
                 flash("User created successfully.", "success")
 
@@ -671,6 +678,7 @@ def delete_customer(email):
 
     return redirect(url_for("manage_users"))
 
+
 # ---------------- PRODUCT MANAGEMENT ----------------
 
 @app.route('/admin/manage_products')
@@ -694,7 +702,6 @@ def manage_promo_codes():
     return render_template("manage_promo_codes.html")
 
 
-
 @app.route('/admin/create_product', methods=["GET", "POST"])
 def create_product():
     if session.get('role') not in ['admin', 'superadmin']:
@@ -707,6 +714,9 @@ def create_product():
         category = request.form["category"]
         description = request.form["description"]
         image = request.files["image"]
+        is_on_sale = request.form.get("sales") == "yes"
+
+        discounted_price = round(price * 0.85, 2) if is_on_sale else price
 
         if image and image.filename:  # Ensure a file was uploaded
             # **Save Image Directly to Static Folder**
@@ -726,12 +736,15 @@ def create_product():
                 "price": price,
                 "category": category,
                 "description": description,
-                "image": image_url
+                "image": image_url,
+                "discounted_price": discounted_price,
+                "sales": is_on_sale,
             }
             log_admin_action(f"Created product: {name}")
             flash("Product created successfully.", "success")
 
     return render_template("create_product.html")
+
 
 @app.route('/admin/edit_product/<int:product_id>', methods=["GET", "POST"])
 def edit_product(product_id):
@@ -752,6 +765,9 @@ def edit_product(product_id):
             category = request.form["category"]
             description = request.form["description"]
             image = request.files["image"]
+            is_on_sale = request.form.get("sales") == "yes"
+
+            discounted_price = round(price * 0.85, 2) if sales else price
 
             # If a new image is uploaded, replace the old one
             if image and image.filename:
@@ -766,9 +782,11 @@ def edit_product(product_id):
             # Update product details
             product["name"] = name
             product["price"] = price
+            product["discounted_price"] = discounted_price if sales else None
             product["category"] = category
             product["description"] = description
             product["image"] = image_url
+            product["sales"] = is_on_sale
 
             db[str(product_id)] = product  # Save updated product to db
 
@@ -815,15 +833,16 @@ def admin_changelog():
 
     return render_template("admin_changelog.html", changelog=logs)
 
+
 def log_admin_action(action):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with shelve.open("admin_logs.db", writeback=True) as db:
-        db[str(len(db) + 1)] = {"timestamp": timestamp, "admin": session.get("admin", {}).get("username", "Unknown"), "action": action}
+        db[str(len(db) + 1)] = {"timestamp": timestamp, "admin": session.get("admin", {}).get("username", "Unknown"),
+                                "action": action}
 
 
 if __name__ == "__main__":
     app.secret_key = 'secret_key'
-
 
 DB_FILE = "deliveries.db"
 
@@ -932,9 +951,11 @@ def select_delivery(index):
 
     return redirect(url_for('index'))
 
+
 @app.route('/membership_payment')
 def membership_payment():
     return render_template('membership_payment.html')
+
 
 if __name__ == "__main__":
     app.run(debug=True)
