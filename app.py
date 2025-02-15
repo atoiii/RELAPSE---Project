@@ -977,6 +977,33 @@ def select_delivery(index):
 def membership_payment():
     return render_template('membership_payment.html')
 
+def update_membership(User, status):
+    with shelve.open('users.db', writeback=True) as db:
+        if User in db:
+            db[User]['membership_status'] = status  # Update membership status
+        else:
+            print("User not found")
+
+@app.route("/purchase_membership", methods=["POST"])
+def purchase_membership():
+    if "user" not in session:
+        return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    data = request.json
+    membership = data.get("membership")
+
+    if membership not in ["Bronze", "Silver", "Gold"]:
+        return jsonify({"success": False, "message": "Invalid membership selected"}), 400
+
+    user = session["user"]  # Retrieve logged-in user
+
+    # Update membership in the database
+    with shelve.open('users.db', writeback=True) as db:
+        if user in db:
+            db[user]['membership_status'] = membership
+            return jsonify({"success": True, "message": f"Membership upgraded to {membership}!"})
+        else:
+            return jsonify({"success": False, "message": "User not found"}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)
