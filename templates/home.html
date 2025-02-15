@@ -62,7 +62,7 @@
 
 <!-- Featured Products Section -->
 <div class="container">
-    <h1 class="text-center mb-4">Featured Products</h1>
+    <h1 class="text-center mb-4">Products</h1>
     <div class="row justify-content-center">
         {% for product in products %}
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex justify-content-center">
@@ -70,7 +70,7 @@
 
                 <!-- Sale Badge -->
                 {% if product.sales %}
-                <span class="sale-badge">Save 15%</span>
+                <span class="sale-badge">Save {{ product.discount_percentage }}%</span>
                 {% endif %}
 
                 <img src="{{ url_for('static', filename=product.image) }}" class="card-img-top img-fluid"
