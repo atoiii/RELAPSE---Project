@@ -12,7 +12,7 @@
            margin: 0;
            padding: 0;
            text-align: center;
-           background: url('static/marble_background.jpg') no-repeat center center fixed;
+           background: url('static/marble background.jpg') no-repeat center center fixed;
            background-size: cover;
            color: black;
        }
@@ -27,19 +27,25 @@
 
 
        h1 {
-           color: black;
+           color: white;
            font-size: 36px;
            font-weight: bold;
            margin-bottom: 10px;
        }
 
+       h2 {
+           font-weight: bold;
+       }
 
        p {
-           color: black;
+           color: white;
            font-size: 16px;
            margin-bottom: 30px;
        }
 
+       .price {
+           text-decoration: underline;
+       }
 
        /* Membership Cards */
        .membership-options {
@@ -114,6 +120,7 @@
            <div class="membership-card">
                <h2>Bronze</h2>
                <ul>
+                   <li class="price">$10 Monthly</li>
                    <li>5% off all purchases</li>
                    <li>Monthly Newsletter</li>
                    <li>Community Forum</li>
@@ -126,6 +133,7 @@
            <div class="membership-card">
                <h2>Silver</h2>
                <ul>
+                   <li class="price">$20 Monthly</li>
                    <li>10% off all purchases</li>
                    <li>Free shipping</li>
                    <li>Discounts on Events</li>
@@ -138,6 +146,7 @@
            <div class="membership-card">
                <h2>Gold</h2>
                <ul>
+                   <li class="price">$30 Monthly</li>
                    <li>20% off all purchases</li>
                    <li>Priority customer service</li>
                    <li>Members-only items</li>
@@ -159,4 +168,4 @@
 </html>
 
 
-{% endblock %}
+{% endblock %}

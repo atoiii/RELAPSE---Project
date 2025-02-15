@@ -1,13 +1,48 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
 <style>
-    .sales-content {
-        text-align: center;
-        margin: 20px;
+    .sale-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: #dc3545; /* Red badge */
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 20px;
     }
 </style>
-<div class="sales-content">
-    <h1>Clothes on Sale</h1>
-    <p>Check back soon for amazing discounts!</p>
+<div class="container">
+    <h1 class="text-center mb-4">Clothes on Sale</h1>
+    <div class="row justify-content-center">
+        {% for product in products %}
+        {% if product.sales %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex justify-content-center">
+            <div class="card shadow-lg border-0 ani position-relative" style="width: 270px; height: 390px;">
+
+                <!-- Sale Badge -->
+                <span class="sale-badge">Save {{ product.discount_percentage }}%%</span>
+
+                <img src="{{ url_for('static', filename=product.image) }}" class="card-img-top img-fluid"
+                     style="height: 220px; object-fit: cover; border-top-left-radius: 8px; border-top-right-radius: 8px;"
+                     alt="{{ product.name }}">
+
+                <div class="card-body text-center d-flex flex-column">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text fw-bold">
+                        <del class="text-muted">${{ "%.2f"|format(product.price) }}</del>
+                        <span class="text-success">${{ "%.2f"|format(product.discounted_price) }}</span>
+                    </p>
+                    <div class="mt-3">
+                        <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-primary w-100">Add
+                            to Cart</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

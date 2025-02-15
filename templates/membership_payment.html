@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-<html lang="en">
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +15,6 @@
            color: black;
        }
 
-
        .payment-container {
            max-width: 500px;
            margin: 50px auto;
@@ -27,13 +25,11 @@
            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
        }
 
-
        h1 {
            font-size: 28px;
            font-weight: bold;
            margin-bottom: 20px;
        }
-
 
        .membership-selected {
            font-size: 20px;
@@ -41,11 +37,9 @@
            margin-bottom: 20px;
        }
 
-
        .payment-methods {
            margin: 20px 0;
        }
-
 
        .payment-methods button {
            background: black;
@@ -59,22 +53,18 @@
            transition: 0.3s;
        }
 
-
        .payment-methods button:hover {
            background: gray;
        }
-
 
        .payment-details {
            display: none;
            margin-top: 20px;
        }
 
-
        .input-container {
            position: relative;
        }
-
 
        .payment-details input {
            width: 90%;
@@ -83,7 +73,6 @@
            border: 1px solid #ccc;
            border-radius: 5px;
        }
-
 
        .card-logo {
            position: absolute;
@@ -95,7 +84,6 @@
            display: none;
        }
 
-
        .qr-code img {
            width: 50%;
            max-width: 200px;
@@ -103,15 +91,12 @@
            margin: auto;
        }
 
-
        .error {
            color: red;
            font-size: 12px;
            display: block;
            margin-top: 5px;
        }
-
-
    </style>
 </head>
 <body>
@@ -119,44 +104,36 @@
        <h1>Payment Page</h1>
        <p class="membership-selected">Selected Membership: <span id="membershipType"></span></p>
 
-
        <div class="payment-methods">
            <button onclick="togglePayment('card')">Pay with Card</button>
            <button onclick="togglePayment('mobile')">Pay with Mobile Payment</button>
        </div>
 
-
        <div id="card-details" class="payment-details">
            <div class="input-container">
-               <input type="text" id="card-number" placeholder="Card Number">
+               <input type="text" id="card-number" placeholder="Card Number" required>
                <img id="card-logo" class="card-logo" src="" alt="Card Logo">
            </div>
            <span class="error" id="card-number-error"></span>
 
-
-           <input type="text" id="expiry-date" placeholder="MM/YY">
+           <input type="text" id="expiry-date" placeholder="MM/YY" required>
            <span class="error" id="expiry-date-error"></span>
 
-
-           <input type="text" id="cvv" placeholder="CVV">
+           <input type="text" id="cvv" placeholder="CVV" required>
            <span class="error" id="cvv-error"></span>
 
-
-           <a href="/"><button class="pay-button" onclick="processCardPayment()">Pay Now</button></a>
+           <a href="/"><button class="pay-button" onclick="processCardPayment(event)">Pay Now</button></a>
        </div>
-
 
        <div id="qr-code" class="payment-details qr-code">
            <img src="/static/Paynow QR.jpg" alt="QR Code">
        </div>
    </div>
 
-
    <script>
        const urlParams = new URLSearchParams(window.location.search);
        const membershipType = urlParams.get('membership');
        document.getElementById("membershipType").textContent = membershipType ? membershipType.charAt(0).toUpperCase() + membershipType.slice(1) : "Not Selected";
-
 
        function togglePayment(method) {
            document.getElementById('card-details').style.display = 'none';
@@ -168,41 +145,27 @@
            }
        }
 
-
        document.getElementById("card-number").addEventListener("input", function (e) {
            let value = e.target.value.replace(/\D/g, "");
            e.target.value = value;
 
-
            const cardLogo = document.getElementById("card-logo");
-
-
-           // Clear the logo before checking
            cardLogo.style.display = "none";
 
-
-           // Check for Visa card (starts with 4)
            if (/^4/.test(value)) {
-               cardLogo.src = "/static/visa-logo.png"; // Ensure correct path
-               cardLogo.style.display = "inline"; // Show the Visa logo
-           }
-           // Check for MasterCard (starts with 51-55)
-           else if (/^5[1-5]/.test(value)) {
-               cardLogo.src = "/static/mastercard-logo.png"; // Ensure correct path
-               cardLogo.style.display = "inline"; // Show the MasterCard logo
-           }
-           // Check for American Express (starts with 34 or 37)
-           else if (/^3[47]/.test(value)) {
-               cardLogo.src = "/static/amex-logo.png"; // Ensure correct path
-               cardLogo.style.display = "inline"; // Show the AMEX logo
-           }
-           // Check for Discover card (starts with 6011 or 65)
-           else if (/^6(?:011|5)/.test(value)) {
-               cardLogo.src = "/static/discover-logo.jpg"; // Ensure correct path
-               cardLogo.style.display = "inline"; // Show the Discover logo
+               cardLogo.src = "/static/visa-logo.jpg";
+               cardLogo.style.display = "inline";
+           } else if (/^5[1-5]/.test(value)) {
+               cardLogo.src = "/static/mastercard-logo.png";
+               cardLogo.style.display = "inline";
+           } else if (/^3[47]/.test(value)) {
+               cardLogo.src = "/static/amex-logo.png";
+               cardLogo.style.display = "inline";
+           } else if (/^6(?:011|5)/.test(value)) {
+               cardLogo.src = "/static/discover-logo.jpg";
+               cardLogo.style.display = "inline";
            }
        });
-
 
        document.getElementById("expiry-date").addEventListener("input", function (e) {
            let value = e.target.value.replace(/\D/g, "");
@@ -215,38 +178,52 @@
            }
        });
 
-
        function validateExpiryDate(expiry) {
            const expiryDateError = document.getElementById("expiry-date-error");
            const [month, year] = expiry.split("/").map(Number);
 
-
            if (month < 1 || month > 12) {
                expiryDateError.textContent = "Invalid month.";
-               return;
+               return false;
            }
-
 
            if (year < 25) {
                expiryDateError.textContent = "Card expiry must be 02/25 or later.";
-               return;
+               return false;
            }
-
 
            if (year === 25 && month < 3) {
                expiryDateError.textContent = "Card expiry must be after 02/25.";
+               return false;
+           }
+
+           expiryDateError.textContent = "";
+           return true;
+       }
+
+       function processCardPayment(event) {
+           event.preventDefault(); // Prevent the default form submission
+
+           const cardNumber = document.getElementById("card-number").value;
+           const expiryDate = document.getElementById("expiry-date").value;
+           const cvv = document.getElementById("cvv").value;
+
+           // Check if all fields are filled
+           if (!cardNumber || !expiryDate || !cvv) {
+               alert("Please fill all the required fields.");
                return;
            }
 
+           // Validate expiry date
+           if (!validateExpiryDate(expiryDate)) {
+               return;
+           }
 
-           expiryDateError.textContent = "";
-       }
-
-
-       function processCardPayment() {
            alert("Processing card payment for " + membershipType + " membership.");
+           window.location.href = "/";
        }
+
+
    </script>
 </body>
-</html>
-{% endblock %}
+{% endblock %}
