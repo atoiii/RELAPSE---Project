@@ -5,47 +5,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout Page</title>
+    <title>Delivery Information</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: url('static/gradient-background.png') no-repeat center center fixed;
+            background-color: #f5f5f5;
+            background-size: cover;
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
         }
 
         .container {
-            display: flex;
-            max-width: 1200px;
-            margin: 40px auto;
-            background-color: #fff;
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
         }
 
-        .left-section {
-            flex: 1;
-            padding: 30px;
+        h2 {
+            text-align: center;
         }
 
-        .right-section {
-            flex: 0.8;
-            padding: 30px;
-            background-color: #f9f9f9;
-            border-left: 1px solid #ddd;
-        }
-
-        h2, h3 {
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        form label {
+        label {
             font-weight: 600;
             display: block;
-            margin-bottom: 5px;
+            margin: 10px 0 5px;
         }
 
         input[type="text"] {
@@ -61,157 +49,48 @@
             background-color: black;
             color: white;
             border: none;
-            border-radius: 25px;
-            padding: 10px 20px;
+            padding: 12px;
+            width: 100%;
             font-size: 16px;
             cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+            display: inline-block;
         }
 
         .btn:hover {
             background-color: #333;
         }
 
-        .delivery-list .delivery-item {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .checkout-btn {
+            margin-top: 20px;
+            text-decoration: none;
         }
 
-        .action-buttons button {
-            margin-right: 5px;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            background-color: #eee;
-            border: 1px solid #ddd;
-            cursor: pointer;
-        }
 
-        .action-buttons button:hover {
-            background-color: #ddd;
-        }
-
-        #use {
-            background-color: #008000
-        }
-
-        #edit {
-            background-color: #FFA500
-        }
-
-        #delete {
-            background-color: #ff0000
-        }s
-
-        .discount {
-            margin-bottom: 20px;
-        }
-
-        .discount input {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 70%;
-            margin-right: 10px;
-        }
-
-        .discount button {
-            padding: 10px 20px;
-            background-color: black;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .summary {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .summary div {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .summary h3 {
-            font-size: 20px;
-            margin-bottom: 25px;
-        }
-
-        .summary span {
-            font-weight: 600;
-        }
-
-        .total {
-            margin-top: 30px;
-            font-size: 18px;
-            font-weight: 600;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="left-section">
-            <h2>Delivery</h2>
-            <form action="/add_delivery" method="POST">
-                <label for="country">Country/Region</label>
-                <input type="text" id="country" name="country" placeholder="Enter country/region" required>
-                <label for="address">Address</label>
-                <input type="text" id="address" name="address" placeholder="Enter address" required>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="city" name="city" placeholder="City" required style="flex: 1;">
-                    <input type="text" id="state" name="state" placeholder="State" style="flex: 1;">
-                    <input type="text" id="postcode" name="postcode" placeholder="Postcode" style="flex: 1;">
-                </div>
-                <button type="submit" class="btn">Save Delivery</button>
-            </form>
+        <h2>Enter Delivery Information</h2>
+        <form action="/add_delivery" method="POST">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter full name" required>
 
-            <div class="delivery-list">
-                <h2>Saved Deliveries</h2>
-                {% for delivery in deliveries %}
-                <div class="delivery-item">
-                    <div>
-                        <strong>{{ delivery.country }}</strong>, {{ delivery.address }}, {{ delivery.city }}, {{ delivery.state }} {{ delivery.postcode }}
-                    </div>
-                    <div class="action-buttons">
-                        <form action="/select_delivery/{{ loop.index0 }}" method="POST" style="display: inline;">
-                            <button type="submit" id="use">Use</button>
-                        </form>
-                        <form action="/edit_delivery/{{ loop.index0 }}" method="GET" style="display: inline;">
-                            <button type="submit" id="edit">Edit</button>
-                        </form>
-                        <form action="/delete_delivery/{{ loop.index0 }}" method="POST" style="display: inline;">
-                            <button type="submit" id="delete">Delete</button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" placeholder="Enter address" required>
 
-        <div class="right-section">
-            <h3>Winx Club T-shirt Size M</h3>
-            <div class="discount">
-                <input type="text" placeholder="Discount Code">
-                <button>Apply</button>
-            </div>
-            <div class="summary">
-                <div><span>Subtotal:</span><span>SGD$45.00</span></div>
-                <div><span>Shipping:</span><span>{{ selected_delivery.address if selected_delivery else "Enter Shipping Address" }}</span></div>
-                <div><span>Discount:</span><span>-</span></div>
-                <div class="total"><span>Total:</span><span>SGD$45.00</span></div>
-            </div>
-            <button class="btn" style="margin-top: 20px;"><a style="text-decoration: none; color: white;" href="/checkout">Checkout</a></button>
-            <button class="btn" style="margin-top: 20px;"><a href="/membership">Be a member today</a></button>
-        </div>
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="Enter city" required>
+
+            <label for="postcode">Postcode</label>
+            <input type="text" id="postcode" name="postcode" placeholder="Enter postcode" required>
+
+            <label for="country">Country</label>
+            <input type="text" id="country" name="country" placeholder="Enter country" required>
+
+            <button type="submit" class="btn checkout-btn">Proceed to Checkout</button>
+        </form>
     </div>
 </body>
 </html>

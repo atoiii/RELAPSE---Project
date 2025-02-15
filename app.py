@@ -917,7 +917,7 @@ def add_delivery():
     else:
         flash('All fields are required to add a delivery!', 'danger')
 
-    return redirect(url_for('delivery'))
+    return redirect(url_for('checkout'))
 
 
 @app.route('/edit_delivery/<int:index>', methods=['GET', 'POST'])
