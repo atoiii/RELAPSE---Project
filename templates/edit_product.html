@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Edit Product</h1>
+    <form method="POST" action="{{ url_for('edit_product', product_id=product.id) }}" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="name" class="form-label">Product Name</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ product.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="price" class="form-label">Price</label>
+            <input type="number" step="0.01" id="price" name="price" class="form-control" value="{{ product.price }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <select id="category" name="category" class="form-control" required>
+                <option value="shirts" {% if product.category == 'shirts' %}selected{% endif %}>Shirts</option>
+                <option value="pants" {% if product.category == 'pants' %}selected{% endif %}>Pants</option>
+                <option value="shorts" {% if product.category == 'shorts' %}selected{% endif %}>Shorts</option>
+                <option value="hoodies" {% if product.category == 'hoodies' %}selected{% endif %}>Hoodies</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea id="description" name="description" class="form-control" rows="4" required>{{ product.description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="image" class="form-label">Product Image (optional)</label>
+            <input type="file" id="image" name="image" class="form-control" accept="image/*">
+            {% if product.image %}
+                <div class="mt-2">
+                    <img src="{{ url_for('static', filename=product.image) }}" width="100" alt="Product Image">
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-success w-100">Update Product</button>
+    </form>
+    <div class="text-center mt-4">
+        <a href="{{ url_for('manage_products') }}" class="btn btn-secondary">Back to Products</a>
+    </div>
+</div>
+{% endblock %}

@@ -729,6 +729,75 @@ def create_product():
 
     return render_template("create_product.html")
 
+@app.route('/admin/edit_product/<int:product_id>', methods=["GET", "POST"])
+def edit_product(product_id):
+    if session.get('role') not in ['admin', 'superadmin']:
+        flash("Please log in as an admin.", "danger")
+        return redirect(url_for("login"))
+
+    with shelve.open("products.db", writeback=True) as db:
+        product = db.get(str(product_id))
+
+        if not product:
+            flash("Product not found.", "danger")
+            return redirect(url_for("manage_products"))
+
+        if request.method == "POST":
+            name = request.form["name"]
+            price = float(request.form["price"])
+            category = request.form["category"]
+            description = request.form["description"]
+            image = request.files["image"]
+
+            # If a new image is uploaded, replace the old one
+            if image and image.filename:
+                # Save the new image
+                image_path = os.path.join(app.root_path, 'static', image.filename)
+                image.save(image_path)
+                image_url = image.filename
+            else:
+                # Keep the current image if no new image is uploaded
+                image_url = product["image"]
+
+            # Update product details
+            product["name"] = name
+            product["price"] = price
+            product["category"] = category
+            product["description"] = description
+            product["image"] = image_url
+
+            db[str(product_id)] = product  # Save updated product to db
+
+            flash("Product updated successfully.", "success")
+            return redirect(url_for("manage_products"))
+
+    return render_template("edit_product.html", product=product)
+
+
+@app.route('/admin/delete_product/<int:product_id>', methods=["POST"])
+def delete_product(product_id):
+    if session.get('role') not in ['admin', 'superadmin']:
+        flash("Please log in as an admin.", "danger")
+        return redirect(url_for("login"))
+
+    with shelve.open("products.db", writeback=True) as db:
+        product = db.get(str(product_id))
+
+        if product:
+            # Remove the image file from static folder
+            image_path = os.path.join(app.root_path, 'static', product["image"])
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
+            # Delete product from database
+            del db[str(product_id)]
+            flash("Product deleted successfully.", "success")
+        else:
+            flash("Product not found.", "danger")
+
+    return redirect(url_for("manage_products"))
+
+
 # ---------------- ADMIN CHANGELOG ----------------
 
 @app.route('/admin/changelog')

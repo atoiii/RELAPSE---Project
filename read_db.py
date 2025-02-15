@@ -1,7 +1,7 @@
 import shelve
 
 def inspect_db():
-    db_path = "users.db"  # Path to your shelve database
+    db_path = "products.db"  # Path to your shelve database
     try:
         # Open the database
         with shelve.open(db_path) as db:

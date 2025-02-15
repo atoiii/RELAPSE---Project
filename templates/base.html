@@ -153,7 +153,9 @@
                         <li class="nav-item"><a href="{{url_for('view_carousel')}}" class="nav-link">View Carousel</a></li>
                         <li class="nav-item"><a href="{{url_for('add_carousel')}}" class="nav-link">Add Carousel</a></li>
                         {% endif %}
+                        {% if session['role'] == 'admin' or session['role'] == 'superadmin' %}
                         <li class="nav-item"><a href="{{ url_for('admin_dashboard') }}" class="nav-link">Dashboard</a></li>
+                        {% endif %}
                         {% if session['role'] == 'superadmin' %}
                         <li class="nav-item"><a href="{{ url_for('super_admin_dashboard') }}" class="nav-link">Super Dashboard</a></li>
                         {% endif %}
