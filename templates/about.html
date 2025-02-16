@@ -1,97 +1,52 @@
 {% extends 'base.html' %}
 {% block content %}
+
 <style>
 
-    .about-content {
-        max-width: 1400px;
+    body {
+        background-color: #e5e7e9;
+    }
+
+    .carousel-container {
+        max-width: 800px;
+        max-height: 500px;
         margin: auto;
-        padding: 20px;
-        text-align: center;
-        background-color: #F0F0F0;
-        border-radius: 5px;
-        font-size: 100%
+        overflow: hidden;
+    }
+    .carousel-item img {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
     }
 
-    .floatingtile {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-        background-color: white;
-        margin-left: 3%;
-        margin-right: 3%;
-        padding-top: 1%;
-        padding: 3%;
+    .carousel-control-prev-icon, .carousel-control-next-icon {
+        background-color: black; /* Change the icon color to black */
     }
-
-    .tile1 {
-        background-color: white;
-        margin-bottom: 80px;
-        padding-top: 20px;
-        padding-bottom: 20px;
-        border-style: solid;
-        border-width: 3px;
-        border-colour: black;
-    }
-
-    .tile2 {
-        background-color: white;
-        margin-top: 30px;
-        margin-bottom: 20px;
-        padding-top: 50px;
-        padding-bottom: 50px;
-        border-style: solid;
-        border-width: 3px;
-        border-colour: black;
-    }
-
-    #aboutpagephoto {
-        height: auto;
-        width: 30%;
-    }
-
-    .tile2pictureplustext {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 50px;
-    }
-
-    .stackedtext {
-        display: flex;
-        flex-direction: column;
-        margin-left: 40px;
-    }
-
-
 </style>
-<div class="about-content">
-  <div class="floatingtile">
-      <div class="tile1">
-          <h1>About Us</h1>
-          <p>RELAPSE is dedicated to providing sustainable clothing options while staying fashionable. We value quality, affordability, and a greener future.</p>
 
-          <h2>MISSION</h2>
-          <p>To create high quality clothing with great value, allowing customers to experience wearing trendsetting clothes</p>
-
-          <h2>VALUES</h2>
-          <p>Respecting and Supporting Customers<br> Driving Sustainability<br> Empowering Creativity</p>
-
-          <h2>PRINCIPLES</h2>
-          <p>Conduct business in a way that it benefits the WORLD,<br>Pursue excellence and achieve strong results through our products and customers</p>
-      </div>
-      <br>
-      <div class="tile2">
-          <div>
-              <h2>RELAPSE Innovation</h2>
-              <p>RELAPSE has adopted the mission statement, "Addiction to Sustainability".<br>Aiming to give old clothings a NEW LEASE OF LIFE.<br>We belive that old clothing deserves a second chance</p>
-          </div>
-
-          <div class="tile2pictureplustext">
-              <img src="/static/AboutPageImage.jpg" id="aboutpagephoto">
-              <div class="stackedtext">
-                  <h2>The 'RE-LAPSE' Program</h2>
-                  <p>We offer discounts to customers who REturn old clothes.<br>Partner with REcycling companies to upcycle these garments into new products</p>
-              </div>
-          </div>
-      </div>
+<body>
+    <div class="carousel-container">
+        <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="/static/AboutPage1.png" class="d-block w-100" alt="Slide 1">
+                </div>
+                <div class="carousel-item">
+                    <img src="/static/AboutPage2.png" class="d-block w-100" alt="Slide 2">
+                </div>
+                <div class="carousel-item">
+                    <img src="/static/AboutPage3.png" class="d-block w-100" alt="Slide 3">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
     </div>
-</div>
-{% endblock %}
+</body>
+{%endblock%}
