@@ -15,31 +15,31 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in cart %}
-                <tr data-item-id="{{ item.id }}" data-price="{{ item.price }}">
+                {% for product in cart %}
+                <tr data-item-id="{{ product.id }}" data-price="{{ product.price }}">
                     <td>
-                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="img-thumbnail" width="50">
-                        {{ item.name }}
+                        <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}" class="img-thumbnail" width="50">
+                        {{ product.name }}
                     </td>
                     <td>
-                        {{ item.size }}
+                        {{ product.size }}
                     </td>
                     <td>
                         <!-- Quantity control buttons -->
                         <form method="POST" action="/cart">
-                            <input type="hidden" name="product_id" value="{{ item.id }}">
-                            <input type="hidden" name="size" value="{{ item.size }}">
-                            <button type="submit" name="quantity" value="{{ item.quantity - 1 }}" class="btn btn-outline-secondary btn-sm" {% if item.quantity <= 1 %}disabled{% endif %}>-</button>
-                            <span class="mx-2">{{ item.quantity }}</span>
-                            <button type="submit" name="quantity" value="{{ item.quantity + 1 }}" class="btn btn-outline-secondary btn-sm">+</button>
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                            <input type="hidden" name="size" value="{{ product.size }}">
+                            <button type="submit" name="quantity" value="{{ product.quantity - 1 }}" class="btn btn-outline-secondary btn-sm" {% if product.quantity <= 1 %}disabled{% endif %}>-</button>
+                            <span class="mx-2">{{ product.quantity }}</span>
+                            <button type="submit" name="quantity" value="{{ product.quantity + 1 }}" class="btn btn-outline-secondary btn-sm">+</button>
                         </form>
                     </td>
-                    <td>${{ "%.2f"|format(item.price) }}</td>
-                    <td>${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                    <td>${{ "%.2f"|format(product.price) }}</td>
+                    <td>${{ "%.2f"|format(product.price * product.quantity) }}</td>
                     <td>
                         <form method="POST" action="/cart">
-                            <input type="hidden" name="remove_product_id" value="{{ item.id }}">
-                            <input type="hidden" name="size" value="{{ item.size }}">
+                            <input type="hidden" name="remove_product_id" value="{{ product.id }}">
+                            <input type="hidden" name="size" value="{{ product.size }}">
                             <button type="submit" class="btn btn-danger btn-sm">Remove</button>
                         </form>
                     </td>
@@ -48,7 +48,7 @@
             </tbody>
         </table>
 
-        <h3>Total: ${{ total_price }}</h3>
+        <h3>Total: ${{ "%.2f"|format(total_price) }}</h3>
 
         <div class="text-end">
             <a href="/delivery" class="btn btn-primary">Proceed to Checkout</a>

@@ -154,32 +154,29 @@ def cart():
     if "cart" not in session:
         session["cart"] = []
 
-    total_price = 0  # Initialize total price
+    total_price = 0
 
     if request.method == "POST":
         with shelve.open("users.db", writeback=True) as db:
             user = session["user"]
             email = user["email"]
 
-            # Handle product quantity update
             if "product_id" in request.form:
                 product_id = int(request.form["product_id"])
                 size = request.form["size"]
                 new_quantity = int(request.form["quantity"])
 
-                # Ensure the quantity is at least 1
                 if new_quantity >= 1:
-                    for item in session["cart"]:
-                        if item["id"] == product_id and item["size"] == size:
-                            item["quantity"] = new_quantity
+                    for product in session["cart"]:
+                        if product["id"] == product_id and product["size"] == size:
+                            product["quantity"] = new_quantity
                             break
 
-            # Handle product removal
             if "remove_product_id" in request.form:
                 product_id = int(request.form["remove_product_id"])
                 size = request.form["size"]
-                session["cart"] = [item for item in session["cart"] if
-                                   not (item["id"] == product_id and item["size"] == size)]
+                session["cart"] = [product for product in session["cart"] if
+                                   not (product["id"] == product_id and product["size"] == size)]
                 flash("Item removed from cart.", "success")
 
             db[email]["cart"] = session["cart"]
@@ -187,11 +184,10 @@ def cart():
         session.modified = True
         return redirect(url_for("cart"))
 
-    # Calculate total price
-    for item in session["cart"]:
-        total_price += item["price"] * item["quantity"]
+    for product in session["cart"]:
+        total_price += product["price"] * product["quantity"]
 
-    return render_template("cart.html", cart=session["cart"], total_price=total_price)  # Pass total price to template
+    return render_template("cart.html", cart=session["cart"], total_price=total_price,)
 
 
 @app.route('/add_to_cart/<int:product_id>', methods=["GET", "POST"])
@@ -201,7 +197,7 @@ def add_to_cart(product_id):
         return redirect(url_for("login"))
 
     with shelve.open("products.db") as db:
-        products = list(db.values())  # Convert shelve to list
+        products = list(db.values())
     product = next((p for p in products if p["id"] == product_id), None)
 
     if not product:
