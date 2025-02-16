@@ -341,7 +341,6 @@ def checkout():
 
     total_price = subtotal - discount
 
-
     if request.method == "POST":
         session["cart"] = []  # Clear cart after payment
         session.modified = True
@@ -352,7 +351,6 @@ def checkout():
     # Pass the values to the template
     return render_template("checkout.html", cart=cart_items, total_price=total_price, subtotal=subtotal,
                            discount=discount, membership_status=membership_status)
-
 
 
 @app.route('/CONFIRMATION')
@@ -752,8 +750,8 @@ def manage_promo_codes():
 
 
 class Product:
-    def _init_(self, product_id, name, price, category, description, image_url, discounted_price, discount_percentage,
-                 is_on_sale):
+    def __init__(self, product_id, name, price, category, description, image_url, discounted_price, discount_percentage,
+               is_on_sale):
         self.id = product_id
         self.name = name
         self.price = price
@@ -766,7 +764,7 @@ class Product:
 
     def save(self):
         with shelve.open("products.db", writeback=True) as db:
-            db[str(self.id)] = self._dict_
+            db[str(self.id)] = self.__dict__
 
     def get(product_id):
         with shelve.open("products.db") as db:
@@ -819,8 +817,7 @@ def create_product():
             product_ids = [int(key) for key in db.keys() if key.isdigit()]
             product_id = max(product_ids) + 1 if product_ids else 1
 
-        new_product = Product(product_id, name, price, category, description, image_url,
-                              discounted_price if is_on_sale else None, discount_percentage, is_on_sale)
+        new_product = Product(product_id, name, price, category, description, image_url, discounted_price if is_on_sale else None, discount_percentage, is_on_sale)
         new_product.save()
 
         flash("Product created successfully.", "success")
@@ -860,7 +857,7 @@ def edit_product(product_id):
         flash("Product updated successfully.", "success")
         return redirect(url_for("manage_products"))
 
-    return render_template("edit_product.html", product=product._dict_)
+    return render_template("edit_product.html", product=product.__dict__)
 
 
 @app.route('/admin/delete_product/<int:product_id>', methods=["POST"])
