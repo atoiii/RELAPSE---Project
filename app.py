@@ -298,17 +298,35 @@ def delivery():
 @app.route('/checkout', methods=["GET", "POST"])
 def checkout():
     if "cart" not in session or len(session["cart"]) == 0:
-        flash("Your cart is empty.", "danger")
+        flash("Your cart is empty. Please add items to your cart before proceeding.", "danger")
         return redirect(url_for("cart"))
 
+    # Initialize total price and subtotal
+    subtotal = 0
+    total_price = 0
+    cart_items = session["cart"]  # The list of products in the cart
+
+    for product in cart_items:
+        subtotal += product["price"] * product["quantity"]
+
+    # Example of discount logic
+    discount = 0  # Replace this with actual discount logic, e.g., using a promo code
+    if subtotal >= 100:  # Apply a discount if the subtotal is over a certain amount
+        discount = subtotal * 0.10  # Example: 10% discount for orders over $100
+
+    total_price = subtotal - discount  # Calculate total price after discount
+
+    # If POST request (when user submits payment)
     if request.method == "POST":
+        # Simulate payment processing here
         session["cart"] = []  # Clear cart after payment
         session.modified = True
+
         flash("Payment successful! Your order has been placed.", "success")
-        return redirect(url_for("CONFIRMATION"))
+        return redirect(url_for("confirmation"))
 
-    return render_template("checkout.html")
-
+    # Pass the values to the template
+    return render_template("checkout.html", cart=cart_items, total_price=total_price, subtotal=subtotal, discount=discount)
 
 @app.route('/CONFIRMATION')
 def CONFIRMATION():

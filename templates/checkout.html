@@ -4,10 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Page</title>
+    <title>Checkout</title>
     <style>
-
-
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f8f8;
@@ -15,25 +13,40 @@
             padding: 0;
         }
         .container {
-            width: 100%;
-            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            max-width: 900px;
             margin: auto;
             padding: 20px;
             background: white;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .payment-section {
+            width: 55%;
+            padding: 20px;
+        }
+        .summary-section {
+            width: 40%;
+            padding: 20px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column; /* Align content vertically */
+            justify-content: flex-start;
+            align-items: flex-start;
         }
         h3 {
-            text-align: center;
-            padding: 20px;
-            background: black;
-            color: white;
-            margin: 0;
+            text-align: left;
+            margin-bottom: 20px;
         }
         .payment-option {
             display: flex;
             align-items: center;
             padding: 15px;
-            border-bottom: 1px solid #ddd;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
             cursor: pointer;
             background: white;
         }
@@ -45,9 +58,11 @@
             margin-left: auto;
         }
         .payment-details {
+            display: none;
             padding: 15px;
             background: #f0f0f0;
-            display: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
         }
         .payment-details input {
             width: 100%;
@@ -57,7 +72,8 @@
             border-radius: 5px;
         }
         .qr-code img {
-            width: 100%;
+            width: 50%;
+            max-width: 200px;
             display: block;
             margin: auto;
         }
@@ -72,57 +88,96 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        .error {
-            color: red;
-            font-size: 12px;
+        .summary {
+            text-align: left; /* Align text to the left */
+            margin-top: 20px; /* Add some spacing at the top */
         }
-        .qr-code img {
-            width: 50%;  /* Adjust the size as needed */
-            max-width: 200px;  /* Ensures it doesn't get too large */
-            display: block;
-            margin: auto;
+        .summary h4 {
+            margin: 5px 0; /* Add spacing between each item */
+            font-weight: normal;
         }
-
+        .summary h4 span {
+            font-weight: bold;
+        }
+        .summary .total {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .item-list {
+            margin-bottom: 20px;
+        }
+        .item-list .item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .item-list .item h5 {
+            margin: 0;
+        }
     </style>
 </head>
 
 <body>
 <div class="container">
-    <h3>Payment</h3>
-    <form method="POST" action="/checkout" onsubmit="return validatePayment()">
+    <!-- Payment Section -->
+    <div class="payment-section">
+        <h3>Payment</h3>
+        <form method="POST" action="/checkout" onsubmit="return validatePayment()">
 
-        <label class="payment-option">
-            <input type="radio" name="payment" value="credit" onclick="togglePayment('credit')">
-            Credit Card
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Visa.svg/1200px-Visa.svg.png"
-                 alt="Visa">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="MasterCard">
-        </label>
+            <!-- Credit Card Option -->
+            <label class="payment-option">
+                <input type="radio" name="payment" value="credit" onclick="togglePayment('credit')">
+                Credit Card
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Visa.svg/1200px-Visa.svg.png" alt="Visa">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="MasterCard">
+            </label>
 
-        <div id="credit-details" class="payment-details">
-            <input type="text" id="card-number" placeholder="Card Number">
-            <span class="error" id="card-number-error"></span>
+            <div id="credit-details" class="payment-details">
+                <input type="text" id="card-number" placeholder="Card Number">
+                <span class="error" id="card-number-error"></span>
 
-            <input type="text" id="expiry-date" placeholder="MM/YY">
-            <span class="error" id="expiry-date-error"></span>
+                <input type="text" id="expiry-date" placeholder="MM/YY">
+                <span class="error" id="expiry-date-error"></span>
 
-            <input type="text" id="cvv" placeholder="CVV">
-            <span class="error" id="cvv-error"></span>
+                <input type="text" id="cvv" placeholder="CVV">
+                <span class="error" id="cvv-error"></span>
+            </div>
+
+            <!-- Mobile Payment Option -->
+            <label class="payment-option">
+                <input type="radio" name="payment" value="mobile" onclick="togglePayment('mobile')">
+                Mobile Payment
+                <img src="/static/PayNow Logo.jpg" alt="PayNow">
+                <img src="/static/PayLah Logo.jpg" alt="DBS PayLah">
+            </label>
+
+            <div id="qr-code" class="payment-details qr-code">
+                <img src="/static/Paynow QR.jpg" alt="QR Code">
+            </div>
+
+            <button type="submit" class="pay-button">Pay</button>
+        </form>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="summary-section">
+        <h3>Summary</h3>
+
+        <!-- Display Cart Items -->
+        <div class="item-list">
+            {% for item in items %}
+            <div class="item">
+                <h5>{{ item.name }} - ${{ "%.2f"|format(item.price) }}</h5>
+            </div>
+            {% endfor %}
         </div>
 
-        <label class="payment-option">
-            <input type="radio" name="payment" value="mobile" onclick="togglePayment('mobile')">
-            Mobile Payment
-            <img src="/static/PayNow Logo.jpg" alt="PayNow">
-            <img src="/static/PayLah Logo.jpg" alt="DBS PayLah">
-        </label>
-
-        <div id="qr-code" class="payment-details qr-code">
-            <img src="/static/Paynow QR.jpg" alt="QR Code">
+        <div class="summary">
+            <h4>Subtotal: <span>${{ "%.2f"|format(subtotal) }}</span></h4>
+            <h4>Discount: <span>${{ "%.2f"|format(discount) }}</span></h4>
+            <h4 class="total">Total: <span>${{ "%.2f"|format(total_price) }}</span></h4>
         </div>
-
-        <button type="submit" class="pay-button">Pay</button>
-    </form>
+    </div>
 </div>
 
 <script>
@@ -164,16 +219,7 @@
                 expiryDateError.textContent = "Invalid format. Use MM/YY.";
                 isValid = false;
             } else {
-                const [month, year] = expiryDate.split("/").map(Number);
-                const currentYear = new Date().getFullYear() % 100;
-                const currentMonth = new Date().getMonth() + 1;
-
-                if (year < currentYear || (year === currentYear && month < currentMonth)) {
-                    expiryDateError.textContent = "Card is expired.";
-                    isValid = false;
-                } else {
-                    expiryDateError.textContent = "";
-                }
+                expiryDateError.textContent = "";
             }
 
             // Validate CVV
@@ -187,11 +233,7 @@
             }
         }
 
-        if (isValid) {
-            return true; // Form will be submitted
-        } else {
-            return false; // Prevent form submission
-        }
+        return isValid;
     }
 </script>
 </body>
