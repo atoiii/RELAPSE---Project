@@ -7,7 +7,7 @@ from datetime import timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, make_response
 
 app = Flask(__name__)
 app.secret_key = "Relapsing"
@@ -65,7 +65,8 @@ def clothing(category):
 
 
 class User:
-    def __init__(self, first_name="Admin", last_name="User", email="", password="", role="user", membership_status="Regular", cart=None):
+    def __init__(self, first_name="Admin", last_name="User", email="", password="", role="user",
+                 membership_status="Regular", cart=None):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -97,7 +98,6 @@ class User:
                 user_data.setdefault("last_name", "User")
                 return User(**user_data)
         return None
-
 
     @staticmethod
     def save_user(user):
@@ -200,6 +200,7 @@ def cart():
             user = session["user"]
             email = user["email"]
 
+            # Update quantity
             if "product_id" in request.form:
                 product_id = int(request.form["product_id"])
                 size = request.form["size"]
@@ -211,6 +212,7 @@ def cart():
                             product["quantity"] = new_quantity
                             break
 
+            # Remove item
             if "remove_product_id" in request.form:
                 product_id = int(request.form["remove_product_id"])
                 size = request.form["size"]
@@ -223,10 +225,16 @@ def cart():
         session.modified = True
         return redirect(url_for("cart"))
 
+    # Ensure discount values exist and calculate discounted price
     for product in session["cart"]:
-        total_price += product["price"] * product["quantity"]
+        if "discount_percentage" not in product:
+            product["discount_percentage"] = 0  # Default to 0 if missing
+        if "discounted_price" not in product or product["discount_percentage"] > 0:
+            product["discounted_price"] = round(product["price"] * (1 - product["discount_percentage"] / 100), 2)
 
-    return render_template("cart.html", cart=session["cart"], total_price=total_price,)
+        total_price += product["discounted_price"] * product["quantity"]
+
+    return render_template("cart.html", cart=session["cart"], total_price=total_price)
 
 
 @app.route('/add_to_cart/<int:product_id>', methods=["GET", "POST"])
@@ -272,8 +280,10 @@ def add_to_cart(product_id):
                 "id": product_id,
                 "name": product["name"],
                 "price": product["price"],
+                "image": product["image"],
                 "size": size,
-                "quantity": quantity
+                "quantity": quantity,
+                "discount_percentage": product.get("discount_percentage", 0)  # Add this line
             })
         session.modified = True
         flash(f"{quantity} {size.upper()} {product['name']} added to cart!", "success")
@@ -326,7 +336,9 @@ def checkout():
         return redirect(url_for("confirmation"))
 
     # Pass the values to the template
-    return render_template("checkout.html", cart=cart_items, total_price=total_price, subtotal=subtotal, discount=discount)
+    return render_template("checkout.html", cart=cart_items, total_price=total_price, subtotal=subtotal,
+                           discount=discount)
+
 
 @app.route('/CONFIRMATION')
 def CONFIRMATION():
@@ -820,7 +832,8 @@ def edit_product(product_id):
             elif product.discount_percentage > 90:
                 product.discount_percentage = 90
 
-            product.discounted_price = round(product.price * (1 - product.discount_percentage / 100), 2) if product.sales else product.price
+            product.discounted_price = round(product.price * (1 - product.discount_percentage / 100),
+                                             2) if product.sales else product.price
 
             if "image" in request.files and request.files["image"].filename:
                 image = request.files["image"]
@@ -1021,6 +1034,7 @@ def membership_payment_success():
 
     return redirect(url_for("profile"))  # Redirect after updating
 
+
 @app.route("/membership_login", methods=["POST"])
 def membership_login():
     if "user" not in session:
@@ -1029,6 +1043,7 @@ def membership_login():
 
     user = User.get_user(session["user"]["email"])  # Load user from shelve
     return render_template("membership.html", user=user.to_dict())
+
 
 if __name__ == "__main__":
     app.run(debug=True)
