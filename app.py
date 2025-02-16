@@ -34,6 +34,10 @@ def home():
 
 @app.route('/membership')
 def membership():
+    if session.get("role") in ["admin", "superadmin"]:
+        flash("Admins cannot sign up for membership.", "danger")
+        return redirect(url_for("home"))
+
     return render_template("membership.html")
 
 
@@ -193,6 +197,10 @@ def cart():
         flash("Please log in to access your cart.", "danger")
         return redirect(url_for("login"))
 
+    if session.get("role") in ["admin", "superadmin"]:
+        flash("Admins cannot access the shopping cart.", "danger")
+        return redirect(url_for("home"))
+
     if "cart" not in session:
         session["cart"] = []
 
@@ -245,6 +253,10 @@ def add_to_cart(product_id):
     if "user" not in session:
         flash("Please log in to add items to your cart.", "danger")
         return redirect(url_for("login"))
+
+    if session.get("role") in ["admin", "superadmin"]:
+        flash("Admins cannot add items to the cart.", "danger")
+        return redirect(url_for("home"))
 
     with shelve.open("products.db") as db:
         products = list(db.values())

@@ -105,75 +105,90 @@
     </style>
 </head>
 <body>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-        <center>
-            <div class="alert alert-{{ category }}" role="alert">
-                {{ message }}
-            </div>
-        </center>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-    <div class="content">
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<center>
+    <div class="alert alert-{{ category }}" role="alert">
+        {{ message }}
+    </div>
+</center>
+{% endfor %}
+{% endif %}
+{% endwith %}
+<div class="content">
 
     <!-- Navbar -->
-        <nav class="navbar navbar-expand-lg navbar-dark bg-black">
-            <div class="container-fluid">
-                <a href="/" class="navbar-brand">
-                    <img src="/static/LOGO - RELAPSE.png" alt="RELAPSE Logo">
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black">
+        <div class="container-fluid">
+            <a href="/" class="navbar-brand">
+                <img src="/static/LOGO - RELAPSE.png" alt="RELAPSE Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
                     {% if session['role'] != 'admin' and session['role'] != 'superadmin' %}
-                    <ul class="navbar-nav">
-                        <!-- Clothing Dropdown -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="clothingDropdown" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">Clothing</a>
-                            <ul class="dropdown-menu" aria-labelledby="clothingDropdown">
-                                <li><a href="/clothing/shirts" class="dropdown-item">Shirts</a></li>
-                                <li><a href="/clothing/pants" class="dropdown-item">Pants</a></li>
-                                <li><a href="/clothing/shorts" class="dropdown-item">Shorts</a></li>
-                                <li><a href="/clothing/hoodies" class="dropdown-item">Hoodies</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item"><a href="/sales" class="nav-link">Sales</a></li>
-                        <li class="nav-item"><a href="/membership" class="nav-link">Membership</a></li>
-                        <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
-                        {% elif session['role'] == 'admin' or session['role'] == 'superadmin' %}
-                        <li class="nav-item"><a href="{{ url_for('manage_users') }}" class="nav-link">Manage Users</a></li>
-                        <li class="nav-item"><a href="{{ url_for('manage_products') }}" class="nav-link">Manage Products</a></li>
-                        <li class="nav-item"><a href="{{ url_for('manage_promo_codes') }}" class="nav-link">Manage Promo Codes</a></li>
-                        <li class="nav-item"><a href="{{url_for('view_carousel')}}" class="nav-link">View Carousel</a></li>
-                        <li class="nav-item"><a href="{{url_for('add_carousel')}}" class="nav-link">Add Carousel</a></li>
-                        {% endif %}
-                        {% if session['role'] == 'admin' or session['role'] == 'superadmin' %}
-                        <li class="nav-item"><a href="{{ url_for('admin_dashboard') }}" class="nav-link">Dashboard</a></li>
-                        {% endif %}
-                        {% if session['role'] == 'superadmin' %}
-                        <li class="nav-item"><a href="{{ url_for('super_admin_dashboard') }}" class="nav-link">Super Dashboard</a></li>
-                        {% endif %}
-                        {% if session['user'] %}
-                        <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link text-danger">Logout</a></li>
-                        {% endif %}
-                    </ul>
+                    <!-- Clothing Dropdown (Only for Normal Users) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="clothingDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">Clothing</a>
+                        <ul class="dropdown-menu" aria-labelledby="clothingDropdown">
+                            <li><a href="/clothing/shirts" class="dropdown-item">Shirts</a></li>
+                            <li><a href="/clothing/pants" class="dropdown-item">Pants</a></li>
+                            <li><a href="/clothing/shorts" class="dropdown-item">Shorts</a></li>
+                            <li><a href="/clothing/hoodies" class="dropdown-item">Hoodies</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="/sales" class="nav-link">Sales</a></li>
+                    <li class="nav-item"><a href="/membership" class="nav-link">Membership</a></li>
+                    <!-- Hidden from Admins -->
+                    <li class="nav-item"><a href="/about" class="nav-link">About</a></li>
+                    {% else %}
+                    <!-- Admin & Superadmin Links -->
+                    <li class="nav-item"><a href="{{ url_for('manage_users') }}" class="nav-link">Manage Users</a></li>
+                    <li class="nav-item"><a href="{{ url_for('manage_products') }}" class="nav-link">Manage Products</a>
+                    </li>
+                    <li class="nav-item"><a href="{{ url_for('manage_promo_codes') }}" class="nav-link">Manage Promo
+                        Codes</a></li>
+                    <li class="nav-item"><a href="{{ url_for('view_carousel') }}" class="nav-link">View Carousel</a>
+                    </li>
+                    <li class="nav-item"><a href="{{ url_for('add_carousel') }}" class="nav-link">Add Carousel</a></li>
+                    {% endif %}
 
+                    {% if session['role'] == 'admin' or session['role'] == 'superadmin' %}
+                    <li class="nav-item"><a href="{{ url_for('admin_dashboard') }}" class="nav-link">Dashboard</a></li>
+                    {% endif %}
 
-                    <!-- Icons aligned to the right -->
-                    <div class="nav-icons">
-                        <a href="/cart" class="nav-link"><img src="/static/shopping-cart-white-icon.png" alt="Cart"></a>
-                        <a href="/login" class="nav-link"><img src="/static/login_icon.jpg" alt="Login"></a>
-                    </div>
+                    {% if session['role'] == 'superadmin' %}
+                    <li class="nav-item"><a href="{{ url_for('super_admin_dashboard') }}" class="nav-link">Super
+                        Dashboard</a></li>
+                    {% endif %}
+
+                    {% if session['user'] %}
+                    <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link text-danger">Logout</a></li>
+                    {% endif %}
+                </ul>
+
+                <!-- Icons aligned to the right (Only for Normal Users) -->
+                <div class="d-flex align-items-center ms-auto">
+                    {% if session['role'] != 'admin' and session['role'] != 'superadmin' %}
+                    <a href="/cart" class="nav-link me-3">
+                        <img src="/static/shopping-cart-white-icon.png" alt="Cart" style="width: 24px; height: 24px;">
+                    </a>
+                    {% endif %}
+
+                    <a href="/login" class="nav-link">
+                        <img src="/static/login_icon.jpg" alt="Login" style="width: 24px; height: 24px;">
+                    </a>
                 </div>
-            </div>
-        </nav>
 
+            </div>
+        </div>
+    </nav>
 
 
     <!-- Main Content -->
