@@ -64,48 +64,52 @@ def clothing(category):
     return render_template("clothing.html", category=category.capitalize(), products=filtered_products)
 
 
-@app.route('/login', methods=["GET", "POST"])
-def login():
-    if "user" in session:
-        return redirect(url_for("profile"))
+class User:
+    def __init__(self, first_name="Admin", last_name="User", email="", password="", role="user", membership_status="Regular", cart=None):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
+        self.password = password
+        self.role = role
+        self.membership_status = membership_status
+        self.cart = cart if cart is not None else []
 
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
-        remember = "remember" in request.form
+    def to_dict(self):
+        """Converts the User object to a dictionary for shelve storage."""
+        return {
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "email": self.email,
+            "password": self.password,
+            "role": self.role,
+            "membership_status": self.membership_status,
+            "cart": self.cart
+        }
 
-        with shelve.open("users.db", flag='r') as db:
-            user = db.get(email)
-            if user and user["password"] == password:
-                session["user"] = user
-                session["role"] = user.get("role")
-                session["cart"] = user.get("cart", [])
-                # Set session persistence based on "Remember Me"
-                if remember:
-                    session.permanent = True
-                else:
-                    session.permanent = False  # Temporary session
-                    # If Super Admin logs in, redirect to special Super Admin panel
-                if session['role'] == "superadmin":
-                    flash("Super Admin login successful!", "success")
-                if session['role'] == "admin":
-                    flash("Admin login successful!", "success")
-                if session['role'] == 'user':
-                    flash(f"Welcome back, {user['first_name']}!", "success")
-                return redirect(url_for("profile"))
-            else:
-                flash("Invalid email or password.", "danger")
-
-    return render_template("login.html")
+    @staticmethod
+    def get_user(email):
+        """Fetch user from database and convert to a User object."""
+        with shelve.open("users.db") as db:
+            user_data = db.get(email)
+            if user_data:
+                # **Ensure first_name & last_name exist (for admins)**
+                user_data.setdefault("first_name", "Admin")
+                user_data.setdefault("last_name", "User")
+                return User(**user_data)
+        return None
 
 
-@app.route('/profile')
-def profile():
-    if "user" not in session:
-        flash("Please log in to view your profile.", "warning")
-        return redirect(url_for("login"))
+    @staticmethod
+    def save_user(user):
+        """Save or update user in shelve database."""
+        with shelve.open("users.db", writeback=True) as db:
+            db[user.email] = user.to_dict()
 
-    return render_template("profile.html", user=session["user"])
+    @staticmethod
+    def authenticate(email, password):
+        """Check if user exists and password is correct."""
+        user = User.get_user(email)
+        return user if user and user.password == password else None
 
 
 @app.route('/signup', methods=["GET", "POST"])
@@ -116,7 +120,6 @@ def signup():
         email = request.form["email"]
         password = request.form["password"]
         confirm_password = request.form["confirm_password"]
-        role = "user"
 
         if password != confirm_password:
             flash("Passwords do not match!", "danger")
@@ -126,23 +129,59 @@ def signup():
             flash("Invalid email address!", "danger")
             return render_template("signup.html")
 
-        with shelve.open("users.db", writeback=True) as db:
-            if email in db:
-                flash("Account already exists!", "danger")
-            else:
-                db[email] = {
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "email": email,
-                    "password": password,
-                    "membership_status": "Regular",
-                    "cart": [],
-                    "role": role
-                }
-                flash("Account created successfully!", "success")
-                return redirect(url_for("login"))
+        if User.get_user(email):
+            flash("Account already exists!", "danger")
+        else:
+            new_user = User(first_name, last_name, email, password)
+            User.save_user(new_user)
+            flash("Account created successfully!", "success")
+            return redirect(url_for("login"))
 
     return render_template("signup.html")
+
+
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if "user" in session:
+        return redirect(url_for("profile"))
+
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+        remember = "remember" in request.form
+
+        user = User.authenticate(email, password)
+        if user:
+            session["user"] = user.to_dict()  # Store user data in session
+            session["role"] = user.role
+            session["cart"] = user.cart
+
+            session.permanent = remember  # Set session persistence based on "Remember Me"
+
+            # Redirect based on role
+            if user.role == "superadmin":
+                flash("Super Admin login successful!", "success")
+                return redirect(url_for("super_admin_dashboard"))
+            elif user.role == "admin":
+                flash("Admin login successful!", "success")
+                return redirect(url_for("admin_dashboard"))
+            else:
+                flash(f"Welcome back, {user.first_name}!", "success")
+                return redirect(url_for("profile"))
+
+        flash("Invalid email or password.", "danger")
+
+    return render_template("login.html")
+
+
+@app.route('/profile')
+def profile():
+    if "user" not in session:
+        flash("Please log in to view your profile.", "warning")
+        return redirect(url_for("login"))
+
+    user = User.get_user(session["user"]["email"])  # Load user from shelve
+    return render_template("profile.html", user=user.to_dict())  # Pass as dict
 
 
 @app.route('/cart', methods=["GET", "POST"])
@@ -816,7 +855,7 @@ def admin_changelog():
 def log_admin_action(action):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with shelve.open("admin_logs.db", writeback=True) as db:
-        db[str(len(db) + 1)] = {"timestamp": timestamp, "admin": session.get("admin", {}).get("username", "Unknown"),
+        db[str(len(db) + 1)] = {"timestamp": timestamp, "admin": session.get("user", {}).get("email", "Unknown"),
                                 "action": action}
 
 
