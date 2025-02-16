@@ -316,28 +316,43 @@ def checkout():
     total_price = 0
     cart_items = session["cart"]  # The list of products in the cart
 
+    # Loop through cart to calculate subtotal
     for product in cart_items:
         subtotal += product["price"] * product["quantity"]
 
-    # Example of discount logic
-    discount = 0  # Replace this with actual discount logic, e.g., using a promo code
-    if subtotal >= 100:  # Apply a discount if the subtotal is over a certain amount
-        discount = subtotal * 0.10  # Example: 10% discount for orders over $100
+    # Retrieve user's membership status from session or database
+    user_email = session.get("user", {}).get("email")  # Get the user's email from session
 
-    total_price = subtotal - discount  # Calculate total price after discount
+    if user_email:
+        # Retrieve user data from shelve or another database
+        with shelve.open("users.db") as db:
+            if user_email in db:
+                user = db[user_email]
+                membership_status = user.get("membership_status", "Regular")  # Default to "Regular"
+            else:
+                membership_status = "Regular"  # Default if user not found in DB
+    else:
+        membership_status = "Regular"  # Default if no user is logged in
 
-    # If POST request (when user submits payment)
+    # Apply discount logic based on membership status
+    discount = 0
+    if membership_status == "Premium":  # Apply discount for premium users
+        discount = subtotal * 0.15  # Example: 15% discount for Premium users
+
+    total_price = subtotal - discount
+
+
     if request.method == "POST":
-        # Simulate payment processing here
         session["cart"] = []  # Clear cart after payment
         session.modified = True
 
         flash("Payment successful! Your order has been placed.", "success")
-        return redirect(url_for("confirmation"))
+        return redirect(url_for("CONFIRMATION"))
 
     # Pass the values to the template
     return render_template("checkout.html", cart=cart_items, total_price=total_price, subtotal=subtotal,
-                           discount=discount)
+                           discount=discount, membership_status=membership_status)
+
 
 
 @app.route('/CONFIRMATION')
