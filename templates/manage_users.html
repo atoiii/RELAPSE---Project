@@ -8,6 +8,7 @@
                 <th>Email</th>
                 <th>Name</th>
                 <th>Membership</th>
+                <th>Role</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -17,6 +18,7 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.first_name }} {{ user.last_name }}</td>
                 <td>{{ user.membership_status }}</td>
+                <td>{{ user.role }}</td>
                 <td>
                     <a href="{{ url_for('modify_customer', email=user.email) }}" class="btn btn-warning btn-sm">Edit</a>
                     <form method="POST" action="{{ url_for('delete_customer', email=user.email) }}" class="d-inline">
