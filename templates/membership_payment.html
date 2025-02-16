@@ -130,7 +130,7 @@
 
        <div id="card-details" class="payment-details">
            <div class="input-container">
-               <input type="text" id="card-number" placeholder="Card Number" required>
+               <input type="text" id="card-number" placeholder="Card Number" maxlength="16" required>
                <img id="card-logo" class="card-logo" src="" alt="Card Logo">
            </div>
            <span class="error" id="card-number-error"></span>
@@ -167,7 +167,7 @@
        }
 
        document.getElementById("card-number").addEventListener("input", function (e) {
-           let value = e.target.value.replace(/\D/g, "");
+           let value = e.target.value.replace(/\D/g, "").slice(0, 16);
            e.target.value = value;
 
            const cardLogo = document.getElementById("card-logo");
@@ -218,12 +218,19 @@
            const expiryDate = document.getElementById("expiry-date").value;
            const cvv = document.getElementById("cvv").value;
 
-           if (!cardNumber || !expiryDate || !cvv) {
-               alert("Please fill in all required fields.");
+           if (cardNumber.length !== 16) {
+               document.getElementById("card-number-error").textContent = "Card number must be 16 digits.";
                return false;
+           } else {
+               document.getElementById("card-number-error").textContent = "";
            }
 
            if (!validateExpiryDate(expiryDate)) {
+               return false;
+           }
+
+           if (!cardNumber || !expiryDate || !cvv) {
+               alert("Please fill in all required fields.");
                return false;
            }
 
