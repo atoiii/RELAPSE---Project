@@ -752,7 +752,7 @@ def manage_promo_codes():
 
 
 class Product:
-    def __init__(self, product_id, name, price, category, description, image_url, discounted_price, discount_percentage,
+    def _init_(self, product_id, name, price, category, description, image_url, discounted_price, discount_percentage,
                  is_on_sale):
         self.id = product_id
         self.name = name
@@ -763,6 +763,32 @@ class Product:
         self.discounted_price = discounted_price
         self.discount_percentage = discount_percentage
         self.sales = is_on_sale
+
+    def save(self):
+        with shelve.open("products.db", writeback=True) as db:
+            db[str(self.id)] = self._dict_
+
+    def get(product_id):
+        with shelve.open("products.db") as db:
+            product_data = db.get(str(product_id))
+            if product_data:
+                return Product(
+                    product_id, product_data["name"], product_data["price"], product_data["category"],
+                    product_data["description"], product_data["image"], product_data["discounted_price"],
+                    product_data["discount_percentage"], product_data["sales"]
+                )
+            return None
+
+    def delete(product_id):
+        with shelve.open("products.db", writeback=True) as db:
+            product = db.get(str(product_id))
+            if product:
+                image_path = os.path.join(app.root_path, 'static', product["image"])
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+                del db[str(product_id)]
+                return True
+        return False
 
 
 @app.route('/admin/create_product', methods=["GET", "POST"])
@@ -780,11 +806,7 @@ def create_product():
         is_on_sale = request.form.get("sales") == "yes"
         discount_percentage = int(request.form["discount"]) if is_on_sale else 0
 
-        if discount_percentage < 0:
-            discount_percentage = 0
-        elif discount_percentage > 90:
-            discount_percentage = 90
-
+        discount_percentage = max(0, min(discount_percentage, 90))
         discounted_price = round(price * (1 - discount_percentage / 100), 2) if is_on_sale else price
 
         image_url = None
@@ -797,14 +819,12 @@ def create_product():
             product_ids = [int(key) for key in db.keys() if key.isdigit()]
             product_id = max(product_ids) + 1 if product_ids else 1
 
-            new_product = Product(
-                product_id, name, price, category, description, image_url, discounted_price if is_on_sale else None,
-                discount_percentage if is_on_sale else 0, is_on_sale
-            )
-            db[str(product_id)] = new_product.__dict__
+        new_product = Product(product_id, name, price, category, description, image_url,
+                              discounted_price if is_on_sale else None, discount_percentage, is_on_sale)
+        new_product.save()
 
-            log_admin_action(f"Created product: {name} with discount {discount_percentage}%")
-            flash("Product created successfully.", "success")
+        flash("Product created successfully.", "success")
+        return redirect(url_for("manage_products"))
 
     return render_template("create_product.html")
 
@@ -815,53 +835,32 @@ def edit_product(product_id):
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
-    with shelve.open("products.db", writeback=True) as db:
-        product_data = db.get(str(product_id))
+    product = Product.get(product_id)
+    if not product:
+        flash("Product not found.", "danger")
+        return redirect(url_for("manage_products"))
 
-        if not product_data:
-            flash("Product not found.", "danger")
-            return redirect(url_for("manage_products"))
+    if request.method == "POST":
+        product.name = request.form["name"]
+        product.price = float(request.form["price"])
+        product.category = request.form["category"]
+        product.description = request.form["description"]
+        product.sales = request.form.get("sales") == "yes"
+        product.discount_percentage = max(0, min(float(request.form.get("discount", 0)), 90))
+        product.discounted_price = round(product.price * (1 - product.discount_percentage / 100),
+                                         2) if product.sales else product.price
 
-        product = Product(
-            product_id,
-            product_data["name"],
-            product_data["price"],
-            product_data["category"],
-            product_data["description"],
-            product_data["image"],
-            product_data["discounted_price"],
-            product_data["discount_percentage"],
-            product_data["sales"]
-        )
+        if "image" in request.files and request.files["image"].filename:
+            image = request.files["image"]
+            image_path = os.path.join(app.root_path, 'static', image.filename)
+            image.save(image_path)
+            product.image = image.filename
 
-        if request.method == "POST":
-            product.name = request.form["name"]
-            product.price = float(request.form["price"])
-            product.category = request.form["category"]
-            product.description = request.form["description"]
-            product.sales = request.form.get("sales") == "yes"
+        product.save()
+        flash("Product updated successfully.", "success")
+        return redirect(url_for("manage_products"))
 
-            product.discount_percentage = float(request.form.get("discount", 0))
-            if product.discount_percentage < 0:
-                product.discount_percentage = 0
-            elif product.discount_percentage > 90:
-                product.discount_percentage = 90
-
-            product.discounted_price = round(product.price * (1 - product.discount_percentage / 100),
-                                             2) if product.sales else product.price
-
-            if "image" in request.files and request.files["image"].filename:
-                image = request.files["image"]
-                image_path = os.path.join(app.root_path, 'static', image.filename)
-                image.save(image_path)
-                product.image = image.filename
-
-            db[str(product_id)] = product.__dict__
-
-            flash("Product updated successfully.", "success")
-            return redirect(url_for("manage_products"))
-
-    return render_template("edit_product.html", product=product.__dict__)
+    return render_template("edit_product.html", product=product._dict_)
 
 
 @app.route('/admin/delete_product/<int:product_id>', methods=["POST"])
@@ -870,20 +869,10 @@ def delete_product(product_id):
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
-    with shelve.open("products.db", writeback=True) as db:
-        product = db.get(str(product_id))
-
-        if product:
-            # Remove the image file from static folder
-            image_path = os.path.join(app.root_path, 'static', product["image"])
-            if os.path.exists(image_path):
-                os.remove(image_path)
-
-            # Delete product from database
-            del db[str(product_id)]
-            flash("Product deleted successfully.", "success")
-        else:
-            flash("Product not found.", "danger")
+    if Product.delete(product_id):
+        flash("Product deleted successfully.", "success")
+    else:
+        flash("Product not found.", "danger")
 
     return redirect(url_for("manage_products"))
 
