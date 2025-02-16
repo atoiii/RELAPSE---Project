@@ -3,8 +3,30 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 
 <style>
+    .page-title {
+        text-align: center;
+        font-size: 36px;
+        margin-top: -10px;
+        margin-bottom: 35px;
+    }
+
+    .product-container {
+        background-color: white;
+        border-radius: 12px;
+        padding: 50px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .product-image {
+        width: 100%;
+        max-height: 450px;
+        object-fit: contain;
+    }
+
     .discount-badge {
-        background-color: #dc3545; /* Bootstrap danger red */
+        background-color: #dc3545; /* Red background */
         color: white;
         font-size: 14px;
         font-weight: bold;
@@ -14,47 +36,123 @@
         display: inline-block;
         text-transform: uppercase;
     }
+
+    .price {
+        font-size: 22px;
+        font-weight: bold;
+        color: #dc3545;
+    }
+
+    .old-price {
+        text-decoration: line-through;
+        color: gray;
+        font-size: 18px;
+    }
+
+    .form-control {
+        width: 100%; /* Ensure full width */
+        padding: 10px; /* Adjust padding */
+        font-size: 16px; /* Make text more visible */
+        border: 1px solid #ccc; /* Ensure clear border */
+    }
+
+    .add-to-cart-btn {
+        width: 100%;
+        background-color: #0000FF;
+        color: white;
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 14px;
+        border-radius: 6px;
+        font-size: 16px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        border: none;
+    }
+
+    .add-to-cart-btn:hover {
+        background-color: black;
+        transform: scale(1.02);
+    }
+
+    .cancel-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background-color: gray;
+        color: white;
+        padding: 14px;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        margin-top: 10px;
+    }
+
+    .cancel-btn:hover {
+        background-color: #000000;
+        color: white;
+    }
+
 </style>
 
 <div class="container mt-5">
-    <h1 class="text-center">Add to Cart</h1>
-    <div class="row mt-4">
-        <!-- Product Images -->
-        <div class="col-md-6 mb-4">
-            <img src="/static/{{product.image}}" alt="Product" class="img-fluid rounded mb-3 product-image" id="mainImage">
-        </div>
+    <h1 class="page-title">Add to Cart</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="product-container">
+                <div class="row">
+                    <!-- Product Image -->
+                    <div class="col-md-6 text-center">
+                        <img src="/static/{{product.image}}" alt="Product Image" class="img-fluid rounded product-image"
+                             id="mainImage">
+                    </div>
 
-        <!-- Product Details -->
-        <div class="col-md-6">
-            <h2 class="mb-3">{{ product.name }}</h2>
-            <div class="mb-3">
-                <span class="h4 me-2 text-danger fw-bold">${{  "%.2f"|format(product.discounted_price) }}</span>
-                <span class="text-muted"><s>${{  "%.2f"|format(product.price) }}</s></span>
-                <span class="discount-badge">Save 15%</span>
+                    <!-- Product Details -->
+                    <div class="col-md-6">
+                        <h2 class="mb-3">{{ product.name }}</h2>
+
+                        <div class="mb-3">
+                            {% if product.get("discount_percentage", 0) > 0 %}
+                            <span class="h4 me-2 text-danger fw-bold">${{ "%.2f"|format(product["discounted_price"]) }}</span>
+                            <span class="text-muted"><s>${{ "%.2f"|format(product["price"]) }}</s></span>
+                            <span class="discount-badge">Save {{ "%.0f"|format(product["discount_percentage"]) }}%</span>
+                            {% else %}
+                            <span class="h4 me-2 fw-bold">${{ "%.2f"|format(product["price"]) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <p class="mb-4">{{ product.get('description') }}</p>
+
+                        <!-- Add to Cart Form -->
+                        <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                            <div class="mb-3">
+                                <label for="size" class="form-label">Size:</label>
+                                <select id="size" name="size" class="form-select w-100" required>
+                                    <option value="S">Small</option>
+                                    <option value="M">Medium</option>
+                                    <option value="L">Large</option>
+                                    <option value="XL">Extra Large</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Quantity:</label>
+                                <input type="number" id="quantity" name="quantity" class="form-control" min="1"
+                                       value="1" required>
+                            </div>
+
+                            <button type="submit" class="add-to-cart-btn">
+                                ADD TO CART
+                            </button>
+                            <a href="{{ url_for('home') }}" class="cancel-btn">Cancel</a>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <p class="mb-4">{{product.get('description')}}</p>
-            <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
-                <div class="mb-3">
-                    <label for="size" class="form-label">Size:</label>
-                    <select id="size" name="size" class="form-control" required>
-                        <option value="S">Small</option>
-                        <option value="M">Medium</option>
-                        <option value="L">Large</option>
-                        <option value="XL">Extra Large</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="quantity" class="form-label">Quantity:</label>
-                    <input type="number" id="quantity" name="quantity" class="form-control" min="1" value="1" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-lg mb-3 me-2">
-                    <i class="bi bi-cart-plus"></i> Add to Cart
-                </button>
-                <a href="{{ url_for('home') }}" class="btn btn-secondary btn-lg mb-3 me-2">Cancel</a>
-            </form>
         </div>
     </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>

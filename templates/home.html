@@ -21,6 +21,19 @@
         padding: 5px 10px;
         border-radius: 20px;
     }
+
+    .btn-primary {
+        background-color: #0047AB;
+        border-color: #007bff;
+        color: white;
+        transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: black !important; /* Turns black on hover */
+        border-color: black !important;
+        transform: scale(1.05); /* Slightly enlarges the button */
+    }
 </style>
 
 <!-- Bootstrap Carousel -->
@@ -69,8 +82,8 @@
             <div class="card shadow-lg border-0 ani position-relative" style="width: 270px; height: 390px;">
 
                 <!-- Sale Badge -->
-                {% if product.sales %}
-                <span class="sale-badge">Save {{ product.discount_percentage }}%</span>
+                {% if "discount_percentage" in product %}
+                <span class="sale-badge">Save {{ "%.0f"|format(product.discount_percentage) }}%</span>
                 {% endif %}
 
                 <img src="{{ url_for('static', filename=product.image) }}" class="card-img-top img-fluid"

@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 <style>
+    .page-title {
+        text-align: center;
+        font-size: 40px;
+        margin-top: 35px;
+        margin-bottom: 35px;
+    }
+
     .sale-badge {
         position: absolute;
         top: 10px;
@@ -12,10 +19,23 @@
         padding: 5px 10px;
         border-radius: 20px;
     }
+
+    .btn-primary {
+        background-color: #0047AB;
+        border-color: #007bff;
+        color: white;
+        transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: black !important; /* Turns black on hover */
+        border-color: black !important;
+        transform: scale(1.05); /* Slightly enlarges the button */
+    }
 </style>
 
 <div class="container">
-    <h1 class="text-center mb-4">{{ category.capitalize() }} Collection</h1>
+    <h1 class="page-title">{{ category.capitalize() }} Collection</h1>
 
     {% if products %}
     <div class="row justify-content-center">
@@ -24,7 +44,7 @@
             <div class="card shadow-lg border-0 ani position-relative" style="width: 270px; height: 390px;">
 
                 {% if product.sales %}
-                <span class="sale-badge">Save 15%</span>
+                <span class="sale-badge">Save {{ "%.0f"|format(product.discount_percentage) }}%</span>
                 {% endif %}
 
                 <img src="{{ url_for('static', filename=product.image) }}" class="card-img-top img-fluid"

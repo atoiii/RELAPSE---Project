@@ -178,7 +178,8 @@ def cart():
             if "remove_product_id" in request.form:
                 product_id = int(request.form["remove_product_id"])
                 size = request.form["size"]
-                session["cart"] = [item for item in session["cart"] if not (item["id"] == product_id and item["size"] == size)]
+                session["cart"] = [item for item in session["cart"] if
+                                   not (item["id"] == product_id and item["size"] == size)]
                 flash("Item removed from cart.", "success")
 
             db[email]["cart"] = session["cart"]
@@ -192,11 +193,27 @@ def cart():
 
     return render_template("cart.html", cart=session["cart"], total_price=total_price)  # Pass total price to template
 
+
 @app.route('/add_to_cart/<int:product_id>', methods=["GET", "POST"])
 def add_to_cart(product_id):
     if "user" not in session:
         flash("Please log in to add items to your cart.", "danger")
         return redirect(url_for("login"))
+
+    with shelve.open("products.db") as db:
+        products = list(db.values())  # Convert shelve to list
+    product = next((p for p in products if p["id"] == product_id), None)
+
+    if not product:
+        flash("Product not found.", "danger")
+        return redirect(url_for("home"))
+
+    # Calculate discounted price if the product has a discount
+    discount_percentage = product.get("discount_percentage", 0)  # Default to 0% if not set
+    if discount_percentage > 0:
+        product["discounted_price"] = round(product["price"] * (1 - discount_percentage / 100), 2)
+    else:
+        product["discounted_price"] = product["price"]
 
     product = next((p for p in list(shelve.open("products.db").values()) if p["id"] == product_id), None)
     if not product:
@@ -228,6 +245,7 @@ def add_to_cart(product_id):
         return redirect(url_for("cart"))
 
     return render_template("add_to_cart.html", product=product)
+
 
 @app.route('/delivery', methods=["GET", "POST"])
 def delivery():
@@ -695,7 +713,7 @@ def create_product():
                 "description": description,
                 "image": image_url,
                 "discounted_price": discounted_price if sales else None,
-                "discounted_percentage": discount_percentage if sales else 0,
+                "discount_percentage": discount_percentage if sales else 0,
                 "sales": is_on_sale,
             }
             log_admin_action(f"Created product: {name} with discount {discount_percentage}%")
@@ -921,12 +939,14 @@ def select_delivery(index):
 def membership_payment():
     return render_template('membership_payment.html')
 
+
 def update_membership(User, status):
     with shelve.open('users.db', writeback=True) as db:
         if User in db:
             db[User]['membership_status'] = status  # Update membership status
         else:
             print("User not found")
+
 
 @app.route("/purchase_membership", methods=["POST"])
 def purchase_membership():
@@ -948,6 +968,7 @@ def purchase_membership():
             return jsonify({"success": True, "message": f"Membership upgraded to {membership}!"})
         else:
             return jsonify({"success": False, "message": "User not found"}), 404
+
 
 if __name__ == "__main__":
     app.run(debug=True)
