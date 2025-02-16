@@ -159,7 +159,9 @@
                         {% if session['role'] == 'superadmin' %}
                         <li class="nav-item"><a href="{{ url_for('super_admin_dashboard') }}" class="nav-link">Super Dashboard</a></li>
                         {% endif %}
+                        {% if session['user'] %}
                         <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link text-danger">Logout</a></li>
+                        {% endif %}
                     </ul>
 
 

@@ -2,6 +2,8 @@ import os
 import re
 import shelve
 import smtplib
+import random
+import time
 from datetime import datetime
 from datetime import timedelta
 from email.mime.multipart import MIMEMultipart
@@ -16,8 +18,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript from accessin
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True if using HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Prevent cross-site request issues
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)  # For "Remember Me"
-UPLOAD_FOLDER = "static/"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 
 
 @app.route("/")
@@ -89,11 +90,13 @@ class User:
 
     @staticmethod
     def get_user(email):
-        """Fetch user from database and convert to a User object."""
         with shelve.open("users.db") as db:
             user_data = db.get(email)
             if user_data:
-                # **Ensure first_name & last_name exist (for admins)**
+                # Remove keys that the User constructor doesn't expect
+                user_data.pop("reset_code", None)
+                user_data.pop("reset_code_expiry", None)
+                # Ensure first_name & last_name exist (for admins)
                 user_data.setdefault("first_name", "Admin")
                 user_data.setdefault("last_name", "User")
                 return User(**user_data)
@@ -358,44 +361,145 @@ def CONFIRMATION():
     return render_template('CONFIRMATION.html')
 
 
+def generate_reset_code():
+    """Generates a random 5-digit code."""
+    return ''.join(random.choices('0123456789', k=5))
+
+
+def send_password_reset_email(to_email, reset_code):
+    sender_email = "relapseshopco@gmail.com"
+    sender_password = "swag zjmu bact zfbh"
+    subject = "Password Reset Code"
+    body = f"""
+    Hi,
+
+    You requested a password reset. Please use the following code to reset your password:
+    {reset_code}
+
+    The code is valid for 5 minutes.
+
+    If you did not request this, please ignore this email.
+    """
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = sender_email
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+        server.quit()
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+
 @app.route('/forgot_password', methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
-        email = request.form["email"]
+        email = request.form["email"].strip().lower()  # Normalize email
 
-        with shelve.open("users.db") as db:
-            if email in db:
-                send_password_reset_email(email)
-                flash("A password reset email has been sent to your email address.", "success")
-                return redirect(url_for("login"))
+        with shelve.open("users.db", writeback=True) as db:
+            user = db.get(email)
+            if user:
+                code = generate_reset_code()
+                user['reset_code'] = code
+                user['reset_code_expiry'] = time.time() + 300
+                db[email] = user  # Update user data
+
+                session['reset_email'] = email  # Store normalized email in session
+                send_password_reset_email(email, code)
+                flash("A 5-digit code has been sent to your email address.", "success")
+                return redirect(url_for("code_confirmation"))
+            else:
+                flash("Email not found!", "danger")
+
+    # If the user is logged in, use their email directly
+    if "user" in session:
+        email = session["user"]["email"]
+        with shelve.open("users.db", writeback=True) as db:
+            user = db.get(email)
+            if user:
+                code = generate_reset_code()
+                user['reset_code'] = code
+                user['reset_code_expiry'] = time.time() + 300
+                db[email] = user
+
+                session['reset_email'] = email
+                send_password_reset_email(email, code)
+                flash("A 5-digit code has been sent to your email address.", "success")
+                return redirect(url_for("code_confirmation"))
             else:
                 flash("Email not found!", "danger")
 
     return render_template("forgot_password.html")
 
 
+
+@app.route('/code_confirmation', methods=["GET", "POST"])
+def code_confirmation():
+    email = session.get("reset_email")
+    if email is None:
+        flash("Session expired or invalid. Please request a new password reset.", "danger")
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+        entered_code = request.form["code"]
+        with shelve.open("users.db") as db:
+            user = db.get(email)
+            if user:
+                if time.time() > user.get("reset_code_expiry", 0):
+                    flash("The code has expired.", "danger")
+                    return redirect(url_for("forgot_password"))
+                if entered_code == user.get("reset_code"):
+                    flash("Code verified successfully. Please proceed to reset your password.", "success")
+                    return redirect(url_for("reset_password"))
+                else:
+                    flash("Invalid code. Please try again.", "danger")
+            else:
+                flash("Invalid email.", "danger")
+    return render_template("code_confirmation.html")
+
+
 @app.route('/reset_password', methods=["GET", "POST"])
 def reset_password():
-    if request.method == "POST":
-        email = request.form["email"]
-        new_password = request.form["new_password"]
-        new_password_confirm = request.form["new_password_confirm"]
+    # Check if the user is logged in and use their email
+    email = session.get("reset_email") or (session.get("user") and session["user"]["email"])
+    if email is None:
+        flash("Session expired. Please request a new password reset.", "danger")
+        return redirect(url_for("forgot_password"))
 
-        if new_password != new_password_confirm:
-            flash("Passwords do not match!", "danger")
+    if request.method == "POST":
+        new_password = request.form["new_password"]
+        confirm_password = request.form["new_password_confirm"]
+
+        if new_password != confirm_password:
+            flash("Passwords do not match.", "danger")
             return render_template("reset_password.html")
 
-        db = shelve.open("users.db")
-        if email in db:
-            user = db[email]
-            user["password"] = new_password  # Update the password
-            db[email] = user  # Reassign to persist changes
-            flash("Password reset successfully!", "success")
-            session.pop("user", None)
-            return redirect(url_for("login"))
-        else:
-            flash("Email not found!", "danger")
+        with shelve.open("users.db") as db:
+            user = db.get(email)
+            if user:
+                old_password = user.get("password")
 
+                # Check if new password is the same as the old password
+                if new_password == old_password:
+                    flash("New password cannot be the same as the old password.", "danger")
+                    return render_template("reset_password.html")
+
+                # Update the password and clean up reset-related data
+                user["password"] = new_password
+                user.pop("reset_code", None)
+                user.pop("reset_code_expiry", None)
+                db[email] = user
+
+                session.pop("reset_email", None)  # Clear reset session after success
+                flash("Password reset successful! You can now log in.", "success")
+                return redirect(url_for("login"))
+            else:
+                flash("User not found.", "danger")
     return render_template("reset_password.html")
 
 
@@ -416,34 +520,6 @@ def logout():
     resp.delete_cookie(app.config['SESSION_COOKIE_NAME'])  # Clear the session cookie
     flash("Logged out successfully.", "success")
     return resp
-
-
-def send_password_reset_email(to_email):
-    sender_email = "relapseshopco@gmail.com"  # Replace with your email
-    sender_password = "swag zjmu bact zfbh"  # Replace with your email password
-    subject = "Password Reset Request"
-    body = f"""
-    Hi,
-
-    You requested a password reset. Please click the link below to reset your password:
-    {url_for('reset_password', _external=True)}
-
-    If you did not request this, please ignore this email.
-    """
-    try:
-        msg = MIMEMultipart()
-        msg["From"] = sender_email
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
-
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, to_email, msg.as_string())
-        server.quit()
-    except Exception as e:
-        print(f"Error sending email: {e}")
 
 
 @app.route('/delete_account', methods=["GET", "POST"])
@@ -563,7 +639,7 @@ def edit_carousel(item_id):
                 if os.path.exists(old_image_path):
                     os.remove(old_image_path)
 
-                image_filename = os.path.join(app.config["UPLOAD_FOLDER"], image.filename)
+                image_filename = os.path.join("/static", image.filename)
                 image.save(image_filename)
                 item["image"] = image.filename  # Update image path
 

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Confirmation</title>
+</head>
+<body>
+    <h1>Enter the 5-digit Code</h1>
+
+    <form method="POST">
+        <label for="code">Enter the 5-digit code sent to your email:</label>
+        <input type="text" name="code" id="code" maxlength="5" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <br>
+    <a href="{{ url_for('forgot_password') }}">Back to Forgot Password</a>
+</body>
+</html>
+{% endblock %}
