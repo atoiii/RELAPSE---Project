@@ -997,35 +997,38 @@ def membership_payment():
     return render_template('membership_payment.html')
 
 
-def update_membership(User, status):
-    with shelve.open('users.db', writeback=True) as db:
-        if User in db:
-            db[User]['membership_status'] = status  # Update membership status
+@app.route("/membership_payment_success", methods=["POST"])
+def membership_payment_success():
+    if "user" in session:  # Ensure user is logged in
+        user_email = session["user"].get("email")  # Safely get email
+
+        if isinstance(user_email, str):  # Ensure key is a string
+            with shelve.open("users.db", writeback=True) as db:
+                if user_email in db:
+                    user = db[user_email]
+                    user["membership_status"] = "Premium"  # Update DB
+                    db[user_email] = user  # Save changes
+                    db.sync()  # Ensure it's written
+
+                    # Update session data
+                    session["user"]["membership_status"] = "Premium"
+
+                    flash("Your membership has been upgraded to Premium!", "success")
+                else:
+                    flash("Error: User not found in database.", "error")
         else:
-            print("User not found")
+            flash("Error: Invalid user email.", "error")
 
+    return redirect(url_for("profile"))  # Redirect after updating
 
-@app.route("/purchase_membership", methods=["POST"])
-def purchase_membership():
+@app.route("/membership_login", methods=["POST"])
+def membership_login():
     if "user" not in session:
-        return jsonify({"success": False, "message": "User not logged in"}), 401
+        flash("Please log in to view your membership.", "warning")
+        return redirect(url_for("login"))
 
-    data = request.json
-    membership = data.get("membership")
-
-    if membership not in ["Bronze", "Silver", "Gold"]:
-        return jsonify({"success": False, "message": "Invalid membership selected"}), 400
-
-    user = session["user"]  # Retrieve logged-in user
-
-    # Update membership in the database
-    with shelve.open('users.db', writeback=True) as db:
-        if user in db:
-            db[user]['membership_status'] = membership
-            return jsonify({"success": True, "message": f"Membership upgraded to {membership}!"})
-        else:
-            return jsonify({"success": False, "message": "User not found"}), 404
-
+    user = User.get_user(session["user"]["email"])  # Load user from shelve
+    return render_template("membership.html", user=user.to_dict())
 
 if __name__ == "__main__":
     app.run(debug=True)
