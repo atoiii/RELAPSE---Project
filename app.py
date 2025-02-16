@@ -828,15 +828,6 @@ def manage_products():
     return render_template("manage_products.html", products=products)
 
 
-@app.route('/admin/manage_promo_codes')
-def manage_promo_codes():
-    if session.get('role') not in ['admin', 'superadmin']:
-        flash("Please log in as an admin to access this page.", "danger")
-        return redirect(url_for("login"))
-
-    return render_template("manage_promo_codes.html")
-
-
 class Product:
     def __init__(self, product_id, name, price, category, description, image_url, discounted_price, discount_percentage,
                is_on_sale):
