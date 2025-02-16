@@ -82,7 +82,7 @@
             <div class="card shadow-lg border-0 ani position-relative" style="width: 270px; height: 390px;">
 
                 <!-- Sale Badge -->
-                {% if "discount_percentage" in product %}
+                {% if product.sales %}
                 <span class="sale-badge">Save {{ "%.0f"|format(product.discount_percentage) }}%</span>
                 {% endif %}
 
