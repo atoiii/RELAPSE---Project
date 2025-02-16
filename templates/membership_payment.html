@@ -64,29 +64,31 @@
 
        .input-container {
            position: relative;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           margin-bottom: 10px;
        }
 
        .payment-details input {
            width: 90%;
            padding: 10px;
-           margin: 5px 0;
            border: 1px solid #ccc;
            border-radius: 5px;
+           text-align: center;
        }
 
        .card-logo {
            position: absolute;
-           top: 50%;
-           right: 35px;
-           transform: translateY(-50%);
-           width: 30px;
-           height: 20px;
+           right: 27px;
+           width: 40px;
+           height: 25px;
            display: none;
        }
 
        .qr-code img {
-           width: 50%;
-           max-width: 200px;
+           width: 40%;
+           max-width: 150px;
            display: block;
            margin: auto;
        }
@@ -96,6 +98,23 @@
            font-size: 12px;
            display: block;
            margin-top: 5px;
+       }
+
+       .pay-button {
+           background: black;
+           color: white;
+           border: none;
+           padding: 10px 20px;
+           font-size: 16px;
+           cursor: pointer;
+           border-radius: 5px;
+           margin-top: 15px;
+           transition: 0.3s;
+       }
+
+       .pay-button:disabled {
+           background: gray;
+           cursor: not-allowed;
        }
    </style>
 </head>
@@ -116,13 +135,18 @@
            </div>
            <span class="error" id="card-number-error"></span>
 
-           <input type="text" id="expiry-date" placeholder="MM/YY" required>
+           <div class="input-container">
+               <input type="text" id="expiry-date" placeholder="MM/YY" maxlength="5" required>
+           </div>
            <span class="error" id="expiry-date-error"></span>
 
-           <input type="text" id="cvv" placeholder="CVV" required>
+           <div class="input-container">
+               <input type="text" id="cvv" placeholder="CVV" required maxlength="3">
+           </div>
            <span class="error" id="cvv-error"></span>
+
            <form action="/membership_payment_success" method="POST" onsubmit="return validateForm()">
-               <button class="pay-button">Pay Now</button>
+               <button class="pay-button" id="pay-now" disabled>Pay Now</button>
            </form>
        </div>
 
@@ -158,9 +182,6 @@
            } else if (/^3[47]/.test(value)) {
                cardLogo.src = "/static/amex-logo.png";
                cardLogo.style.display = "inline";
-           } else if (/^6(?:011|5)/.test(value)) {
-               cardLogo.src = "/static/discover-logo.jpg";
-               cardLogo.style.display = "inline";
            }
        });
 
@@ -170,27 +191,21 @@
                value = value.substring(0, 2) + "/" + value.substring(2, 4);
            }
            e.target.value = value;
-           if (value.length === 5) {
-               validateExpiryDate(value);
-           }
+           validateExpiryDate(value);
        });
 
        function validateExpiryDate(expiry) {
            const expiryDateError = document.getElementById("expiry-date-error");
            const [month, year] = expiry.split("/").map(Number);
 
-           if (!expiry.includes("/") || month < 1 || month > 12) {
-               expiryDateError.textContent = "Invalid date format. Use MM/YY.";
+           if (!expiry.includes("/") || month < 1 || month > 12 || isNaN(year)) {
+               expiryDateError.textContent = "Invalid format. Use MM/YY.";
                return false;
            }
 
-           if (year < 25) {
-               expiryDateError.textContent = "Card expiry must be 02/25 or later.";
-               return false;
-           }
-
-           if (year === 25 && month < 3) {
-               expiryDateError.textContent = "Card expiry must be after 02/25.";
+           const currentYear = new Date().getFullYear() % 100;
+           if (year < currentYear || (year === currentYear && month < 3)) {
+               expiryDateError.textContent = "Expiry must be 03/25 or later.";
                return false;
            }
 
@@ -198,25 +213,29 @@
            return true;
        }
 
-       function processCardPayment(event) {
-           event.preventDefault();
-
+       function validateForm() {
            const cardNumber = document.getElementById("card-number").value;
            const expiryDate = document.getElementById("expiry-date").value;
            const cvv = document.getElementById("cvv").value;
 
            if (!cardNumber || !expiryDate || !cvv) {
-               alert("Please fill all the required fields.");
-               return;
+               alert("Please fill in all required fields.");
+               return false;
            }
 
            if (!validateExpiryDate(expiryDate)) {
-               return;
+               return false;
            }
 
-           alert("Processing card payment for Premium membership.");
-           window.location.href = "/";
+           return true;
        }
+
+       document.querySelectorAll("#card-number, #expiry-date, #cvv").forEach(input => {
+           input.addEventListener("input", () => {
+               const allFilled = [...document.querySelectorAll("#card-number, #expiry-date, #cvv")].every(i => i.value.trim() !== "");
+               document.getElementById("pay-now").disabled = !allFilled;
+           });
+       });
    </script>
 </body>
-{% endblock %}
+{% endblock %}
