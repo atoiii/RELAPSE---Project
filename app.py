@@ -101,7 +101,7 @@ class User:
                 user_data.pop("reset_code", None)
                 user_data.pop("reset_code_expiry", None)
                 # Ensure first_name & last_name exist (for admins)
-                user_data.setdefault("first_name", "Admin") 
+                user_data.setdefault("first_name", "Admin")
                 user_data.setdefault("last_name", "User")
                 return User(**user_data) #** is used for dictionary unpacking
         return None
@@ -900,7 +900,7 @@ def create_product():
         new_product = Product(product_id, name, price, category, description, image_url, discounted_price if is_on_sale else None, discount_percentage, is_on_sale)
         new_product.save()
 
-        log_admin_action(f"Created product: {name} (ID: {product_id})")
+        log_admin_action(f"Created product: {name}")
 
         flash("Product created successfully.", "success")
         return redirect(url_for("manage_products"))
@@ -949,14 +949,16 @@ def delete_product(product_id):
         flash("Please log in as an admin.", "danger")
         return redirect(url_for("login"))
 
-    if Product.delete(product_id):
+    product = Product.get(product_id)  # Get product details before deletion
+
+    if product:
+        product_name = product.name  # Store the product name
+        Product.delete(product_id)
         flash("Product deleted successfully.", "success")
-        log_admin_action(f"Deleted product ID: {product_id}")
+        log_admin_action(f"Deleted product: {product_name}")
     else:
         flash("Product not found.", "danger")
-
     return redirect(url_for("manage_products"))
-
 
 # ---------------- ADMIN CHANGELOG ----------------
 
