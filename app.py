@@ -56,7 +56,7 @@ def about():
 
 @app.route('/clothing/<category>')
 def clothing(category):
-    category = category.lower()  # Normalize category to lowercase
+    category = category.lower()
 
     with shelve.open("products.db") as db:
         products = [db[key] for key in db.keys() if key.isdigit()]
@@ -101,9 +101,9 @@ class User:
                 user_data.pop("reset_code", None)
                 user_data.pop("reset_code_expiry", None)
                 # Ensure first_name & last_name exist (for admins)
-                user_data.setdefault("first_name", "Admin")
+                user_data.setdefault("first_name", "Admin") 
                 user_data.setdefault("last_name", "User")
-                return User(**user_data)
+                return User(**user_data) #** is used for dictionary unpacking
         return None
 
     @staticmethod
@@ -793,6 +793,7 @@ def modify_customer(email):
             customer["last_name"] = request.form["last_name"]
             customer["email"] = request.form["email"]
             customer["membership_status"] = request.form["membership_status"]
+            log_admin_action(f"Edited user: {email}")
             flash("Customer details updated successfully.", "success")
             return redirect(url_for("admin_dashboard"))
 
@@ -899,6 +900,8 @@ def create_product():
         new_product = Product(product_id, name, price, category, description, image_url, discounted_price if is_on_sale else None, discount_percentage, is_on_sale)
         new_product.save()
 
+        log_admin_action(f"Created product: {name} (ID: {product_id})")
+
         flash("Product created successfully.", "success")
         return redirect(url_for("manage_products"))
 
@@ -933,6 +936,7 @@ def edit_product(product_id):
             product.image = image.filename
 
         product.save()
+        log_admin_action(f"Edited product: {product.name}")
         flash("Product updated successfully.", "success")
         return redirect(url_for("manage_products"))
 
@@ -947,6 +951,7 @@ def delete_product(product_id):
 
     if Product.delete(product_id):
         flash("Product deleted successfully.", "success")
+        log_admin_action(f"Deleted product ID: {product_id}")
     else:
         flash("Product not found.", "danger")
 
